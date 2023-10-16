@@ -1,3 +1,5 @@
+from time import sleep
+
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
@@ -11,6 +13,8 @@ def fetch_data_from_tweet(tweet_url: str):
     driver.implicitly_wait(10)
     driver.get(tweet_url)
 
+    sleep(7)
+
     html = driver.page_source
     start = html.index("<html")
     end = html.index("</html>") + 7
@@ -20,7 +24,14 @@ def fetch_data_from_tweet(tweet_url: str):
     for data in soup.find_all("img", {"class": "css-9pa8cd"}):
         image_url = data["src"]
         if "profile_images" not in image_url:
-            images.append(image_url)
+            # 查找子字符串 "?format=jpg" 的索引
+            index = image_url.find("?format=jpg")
+            if index != -1:
+                # 从原始 URL 中截取子字符串
+                modified_url = image_url[:index + len("?format=jpg")]
+                images.append(modified_url)
+***REMOVED***
+                print("无法找到指定的子字符串")
     return description["content"], images
 
 
@@ -29,6 +40,8 @@ def get_discord_webhook(tweet_url: str):
 ***REMOVED*** "https://discord.com/api/webhooks/1162632189553410149/-jjVQRTX3kIhzDbOHecPMi6cOtqixrmS964LOsY082ymcYyDS5lvoyCnuF0FVZu3aZFW"
     elif "STAYC_official" in tweet_url or "STAYC_talk" in tweet_url:
 ***REMOVED*** "https://discord.com/api/webhooks/1162736592457310268/9UDH3V-4VhKACIOXvkzEmc-1M-9Sj5o94sOlIewtGWj0WsaEuVFBrpynWNBLNsCnEesk"
+    elif "_EL7ZUPofficial" in tweet_url:
+***REMOVED*** "https://discord.com/api/webhooks/1152119906981126174/AE_mVQ_WF_DZowhiS8lDSpcZipiy8lM74z7LflPOzbKfE-auqAKiVbimcb-dkxXooOTK"
 
 
 def get_profile_from_tweet(tweet_url: str):
@@ -38,3 +51,5 @@ def get_profile_from_tweet(tweet_url: str):
 ***REMOVED*** "STAYC(스테이씨) (@STAYC_official)", "https://pbs.twimg.com/profile_images/1683115325875949569/XLbXmPdE_400x400.jpg"
     elif "STAYC_talk" in tweet_url:
 ***REMOVED*** "STAYC (@STAYC_talk)", "https://pbs.twimg.com/profile_images/1655501267630981121/P9xprmtw_400x400.jpg"
+    elif "_EL7ZUPofficial" in tweet_url:
+***REMOVED*** "EL7Z UP OFFICIAL (_EL7ZUPofficial)", "https://pbs.twimg.com/profile_images/1691461887291162624/dtlS3dKA_400x400.jpg"
