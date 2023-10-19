@@ -4,6 +4,8 @@ from selenium import webdriver
 from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
 
+from SnsInfo import SnsInfo, Profile
+
 
 def fetch_data_from_tweet(tweet_url: str):
     options = ChromeOptions()
@@ -32,7 +34,11 @@ def fetch_data_from_tweet(tweet_url: str):
                 images.append(modified_url)
 ***REMOVED***
                 print("无法找到指定的子字符串")
-    return description["content"], images
+
+    tweet_profile = get_profile_from_tweet(tweet_url)
+
+    return SnsInfo(post_link=tweet_url, profile=Profile(tweet_profile[0], tweet_profile[1]),
+                   content=description["content"], images=images)
 
 
 def get_discord_webhook(tweet_url: str):
