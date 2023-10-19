@@ -1,7 +1,7 @@
 ***REMOVED***
 ***REMOVED***_bot
 
-tweet_url = "https://twitter.com/STAYC_official/status/1714929881958764711"
+tweet_url = "https://twitter.com/STAYC_talk/status/1715003200741511198"
 
 webhook_url = twitter_crawler.get_discord_webhook(tweet_url)
 # 測試

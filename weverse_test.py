@@ -1,7 +1,7 @@
 ***REMOVED***_bot
 ***REMOVED***
 
-fetch_url = "https://weverse.io/lightsum/artist/3-137284105"
+fetch_url = "https://weverse.io/stayc/artist/2-128331225"
 
 webhook_url = weverse_crawler.get_discord_webhook(fetch_url)
 
