@@ -66,7 +66,7 @@ def fetch_data_from_tweet(tweet_url: str):
         print("Twitter username not found in the URL.")
 
     # 取得 twitter 頭像
-    div_tag = soup.find('div', class_='css-1dbjc4n r-ggadg3 r-u8s1d r-8jfcpp')
+    div_tag = soup.find('div', class_='css-1dbjc4n')
 
     if div_tag:
         # 在该<div>元素中找到图片URL
