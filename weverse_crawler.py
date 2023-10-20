@@ -10,6 +10,7 @@ from SnsInfo import SnsInfo, Profile
 def fetch_data_from_weverse(url: str):
     options = ChromeOptions()
     options.add_argument("--start-maximized")
+    options.add_argument('--headless')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
     driver.implicitly_wait(10)
@@ -30,6 +31,12 @@ def fetch_data_from_weverse(url: str):
     # 發文所有圖片
     img_tags = soup.find_all('img', class_='photo')
     image_links = [img['src'] for img in img_tags]
+    # 發文所有影片縮圖
+    img_tag = soup.find('img', class_='PostPreviewVideoThumbnailView_thumbnail__dj7KA')
+    if img_tag:
+        image_links.append(img_tag['src'])
+***REMOVED***
+        print("Video Thumbnail URL not found in the HTML.")
 
     return SnsInfo(post_link=url, profile=Profile(name=profile_name, url=profile_image),
                    content=content, images=image_links)
