@@ -52,14 +52,19 @@ def generate_embeds(tweet_url: str):
         for member in role.members:
             if member.id == client.user.id:
                 # 新訊息包含Hello，回覆Hello, world!
+                if "close" in message.content:
+                    await client.close()
                 if "twitter" in message.content:
+    ***REMOVED***
     ***REMOVED***
                     tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
     ***REMOVED***
                         print("提取的推文链接:", tweet_url.group(0))
+                        loading_message.delete()
                         await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(tweet_url.group(0)))
     ***REMOVED***
                         print("未找到推文链接")
+                        loading_message.delete()
                     # await message.channel.send("開始解析")
 
 
