@@ -22,10 +22,9 @@ def fetch_data_from_instagram(url: str):
 
     image_links = [resource.thumbnail_url for resource in post_info.resources]
 
-    return post_info.user.pk, SnsInfo(post_link=url,
-                                      profile=Profile(name=f"{post_info.user.full_name} (@{post_info.user.username})",
-                                                      url=post_info.user.profile_pic_url),
-                                      content=post_info.caption_text, images=image_links)
+    return SnsInfo(post_link=url, profile=Profile(name=f"{post_info.user.full_name} (@{post_info.user.username})",
+                                                  url=post_info.user.profile_pic_url), content=post_info.caption_text,
+                   images=image_links)
 
 
 def get_discord_webhook(id: str):

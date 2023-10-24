@@ -36,6 +36,17 @@ def generate_embeds(sns_info: SnsInfo):
     return embeds
 
 
+def mentions(message: message, id: int):
+    if id in message.raw_mentions:
+        return True
+    else:
+        for role in message.role_mentions:
+            for member in role.members:
+                if member.id == client.user.id:
+                    return True
+    return False
+
+
 # 調用event函式庫
 @client.event
 # 當機器人完成啟動
@@ -50,51 +61,49 @@ async def on_message(message):
     # role_mentions.member.id
     if message.author == client.user:
         return
-    for role in message.role_mentions:
-        for member in role.members:
-            if member.id == client.user.id:
-                # 新訊息包含Hello，回覆Hello, world!
-                if "close" in message.content:
-                    await client.close()
-                if "twitter.com" or "x.com" in message.content:
-                    await message.delete()
-                    loading_message = await message.channel.send(content="處理中，請稍後...")
-                    tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
-                    if tweet_url:
-                        print("提取的推文链接:", tweet_url.group(0))
-                        await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
-                            twitter_crawler.fetch_data_from_tweet(tweet_url.group(0))))
-                        await loading_message.delete()
-                    else:
-                        print("未找到推文链接")
-                        await loading_message.delete()
-                    # await message.channel.send("開始解析")
-                elif "instagram.com" in message.content:
-                    await message.delete()
-                    loading_message = await message.channel.send(content="處理中，請稍後...")
-                    instagram_url = re.search(r'(https://instagram.com/[^?]+)', message.content)
-                    if instagram_url:
-                        print("提取的推文链接:", instagram_url.group(0))
-                        await message.channel.send(content=instagram_url.group(0),
-                                                   embeds=generate_embeds(instagram_crawler.fetch_data_from_instagram(
-                                                       instagram_url.group(0))))
-                        await loading_message.delete()
-                    else:
-                        print("未找到推文链接")
-                        await loading_message.delete()
-                elif "weverse.io" in message.content:
-                    await message.delete()
-                    loading_message = await message.channel.send(content="處理中，請稍後...")
-                    weverse_url = re.search(r'(https://weverse.io/[^?]+)', message.content)
-                    if weverse_url:
-                        print("提取的推文链接:", weverse_url.group(0))
-                        await message.channel.send(content=weverse_url.group(0),
-                                                   embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
-                                                       weverse_url.group(0))))
-                        await loading_message.delete()
-                    else:
-                        print("未找到推文链接")
-                        await loading_message.delete()
+    # 判斷是否有 @bot
+    if mentions(message, client.user.id):
+        if "close" in message.content:
+            await client.close()
+        elif "twitter.com" in message.content or "x.com" in message.content:
+            await message.delete()
+            loading_message = await message.channel.send(content="處理中，請稍後...")
+            tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
+            if tweet_url:
+                print("提取的推文链接:", tweet_url.group(0))
+                await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
+                    twitter_crawler.fetch_data_from_tweet(tweet_url.group(0))))
+                await loading_message.delete()
+            else:
+                print("未找到推文链接")
+                await loading_message.delete()
+            # await message.channel.send("開始解析")
+        elif "instagram.com" in message.content:
+            await message.delete()
+            loading_message = await message.channel.send(content="處理中，請稍後...")
+            instagram_url = re.search(r'(https://www.instagram.com/[^?]+)', message.content)
+            if instagram_url:
+                print("提取的推文链接:", instagram_url.group(0))
+                await message.channel.send(content=instagram_url.group(0),
+                                           embeds=generate_embeds(instagram_crawler.fetch_data_from_instagram(
+                                               instagram_url.group(0))))
+                await loading_message.delete()
+            else:
+                print("未找到推文链接")
+                await loading_message.delete()
+        elif "weverse.io" in message.content:
+            await message.delete()
+            loading_message = await message.channel.send(content="處理中，請稍後...")
+            weverse_url = re.search(r'(https://weverse.io/[^?]+)', message.content)
+            if weverse_url:
+                print("提取的推文链接:", weverse_url.group(0))
+                await message.channel.send(content=weverse_url.group(0),
+                                           embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
+                                               weverse_url.group(0))))
+                await loading_message.delete()
+            else:
+                print("未找到推文链接")
+                await loading_message.delete()
 
 
 client.run(BOT_TOKEN)
