@@ -3,6 +3,8 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+
 from discord_bot ***REMOVED***_webhook
 from SnsInfo import SnsInfo, Profile
 
@@ -16,7 +18,7 @@ def fetch_data_from_weverse(url: str):
     driver.implicitly_wait(10)
     driver.get(url)
 
-    sleep(7)
+    driver.find_element(By.CLASS_NAME, "ProfileThumbnailView_thumbnail__8W3E7")
 
     html = driver.page_source
     # print(html)

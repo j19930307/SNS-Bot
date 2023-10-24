@@ -4,6 +4,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
 
 from SnsInfo import SnsInfo, Profile
 from discord_bot ***REMOVED***_webhook
@@ -15,10 +16,10 @@ def fetch_data_from_tweet(tweet_url: str):
     options.add_argument('--headless')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
-    # driver.implicitly_wait(5)
+    driver.implicitly_wait(10)
     driver.get(tweet_url)
 
-    sleep(7)
+    driver.find_element(By.CLASS_NAME, "css-9pa8cd")
 
     html = driver.page_source
     start = html.index("<html")
