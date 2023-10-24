@@ -3,7 +3,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
-import discord_bot
+from discord_bot import discord_webhook
 from SnsInfo import SnsInfo, Profile
 
 
@@ -44,8 +44,8 @@ def fetch_data_from_weverse(url: str):
 
 def get_discord_webhook(url: str):
     if "lightsum" in url:
-        return "https://discord.com/api/webhooks/1162632189553410149/-jjVQRTX3kIhzDbOHecPMi6cOtqixrmS964LOsY082ymcYyDS5lvoyCnuF0FVZu3aZFW"
+        return discord_webhook("LIGHTSUM")
     elif "stayc" in url:
-        return "https://discord.com/api/webhooks/1162736592457310268/9UDH3V-4VhKACIOXvkzEmc-1M-9Sj5o94sOlIewtGWj0WsaEuVFBrpynWNBLNsCnEesk"
+        return discord_webhook("STAYC")
     elif "_EL7ZUPofficial" in url:
-        return "https://discord.com/api/webhooks/1152119906981126174/AE_mVQ_WF_DZowhiS8lDSpcZipiy8lM74z7LflPOzbKfE-auqAKiVbimcb-dkxXooOTK"
+        return discord_webhook("EL7Z UP")

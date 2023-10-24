@@ -7,17 +7,6 @@ import requests
 
 from discord_message import Message, Embed, Image, Author
 
-# 創建 Instaloader 實例
-L = instaloader.Instaloader()
-# L.login("hungchihung1990", "gaeun940820")
-
-# 測試
-# webhook_url = "https://discord.com/api/webhooks/1162632449545752597/sCvieQPZNw5G9XX1iPS-N3WusXnPfrcUU3YjPHlnBzI_CepxO7t4jGKFlRVFDvJNVhNc"
-#STAYC
-# webhook_url = "https://discord.com/api/webhooks/1162736592457310268/9UDH3V-4VhKACIOXvkzEmc-1M-9Sj5o94sOlIewtGWj0WsaEuVFBrpynWNBLNsCnEesk"
-#LIGHTSUM
-webhook_url = "https://discord.com/api/webhooks/1162632189553410149/-jjVQRTX3kIhzDbOHecPMi6cOtqixrmS964LOsY082ymcYyDS5lvoyCnuF0FVZu3aZFW"
-
 # 輸入要下載的帳戶名稱
 profile = "stayc_highup"
 
