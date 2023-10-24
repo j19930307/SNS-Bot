@@ -7,7 +7,7 @@ from discord import message, Embed
 ***REMOVED***
 from discord_bot import post_source
 
-BOT_TOKEN = os.environ["DISCORD_WEBHOOK"]
+***REMOVED***
 
 # client是跟discord連接，intents是要求機器人的權限
 intents = discord.Intents.all()
