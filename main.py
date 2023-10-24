@@ -1,148 +1,100 @@
-import json
-from datetime import datetime
+import os
+import re
 
-import instaloader
-import pytz
-import requests
+import discord
+from discord import message, Embed
 
-from discord_message import Message, Embed, Image, Author
+import instagram_crawler
+import twitter_crawler
+import weverse_crawler
+from SnsInfo import SnsInfo
+from discord_bot import post_source
 
-# 輸入要下載的帳戶名稱
-profile = "stayc_highup"
+BOT_TOKEN = os.environ["BOT_TOKEN"]
 
-
-def read_last_updated():
-    with open('last_updated.txt', 'r') as f:
-        created_time = f.read()
-        f.close()
-        return created_time
-
-
-# write text to last_updated.txt
-def write_last_updated(text: str):
-    with open('last_updated.txt', 'w') as f:
-        f.write(text)
-        f.close()
+# client是跟discord連接，intents是要求機器人的權限
+intents = discord.Intents.all()
+intents.message_content = True
+client = discord.Client(intents=intents)
 
 
-def compare_times(time_str1: str, time_str2: str):
-    # 將時間字符串轉換為datetime對象
-    time1 = datetime.fromisoformat(time_str1[:-1])  # 去掉最後的 'Z' 字符再轉換
-    time2 = datetime.fromisoformat(time_str2[:-1])
-    # 進行比較並返回結果
-    return time1 > time2
-
-
-# 自定义 JSON 编码函数
-def custom_encoder(obj):
-    if isinstance(obj, (Author, Image, Embed, Message)):
-        return obj.__dict__
-    else:
-        raise TypeError("Object is not JSON serializable")
-
-
-
-link = "https://twitter.com/CUBE_LIGHTSUM/status/1713375273788522884"
-content = """
-[#주현] 오늘 하루도 행복하쟈 썸잇 🤍☁️
-"""
-
-images = []
-with open("tweet.txt") as text_file:
-    for line in text_file:
-        line = line.replace("&name=small\n", "")
-        images.append(line)
-
-# STAYC 官方
-# profile_image = "https://pbs.twimg.com/profile_images/1683115325875949569/XLbXmPdE_400x400.jpg"
-# account = "STAYC(스테이씨) (@STAYC_official)"
-
-# STAYC 成員
-# profile_image = "https://pbs.twimg.com/profile_images/1655501267630981121/P9xprmtw_400x400.jpg"
-# account = "STAYC (@STAYC_talk)"
-
-# LIGHTSUM 官方
-# profile_image = "https://pbs.twimg.com/profile_images/1704148378870026240/3gLE-6ta_400x400.jpg"
-# account = "LIGHTSUM·라잇썸 (@CUBE_LIGHTSUM)"
-
-# 發送訊息到 Discord
-def send_message(link: str, content: str, images: list):
-    # Discord Webhook URL，請將 URL 替換為您自己的 Webhook URL
-
-    # 获取 "content" 字段的数据
-    # content_data = instagram_url
-    # images_url = post.get("images", [])
-    # nickname = post["writer"]["nickname"]
-    # profile_image = post["writer"]["profileImage"]
-
+def generate_embeds(sns_info: SnsInfo):
     embeds = []
-
-    # 構建要發送的 JSON 數據
-    # 文字訊息
-    # if len(images_url) == 0:
-    # embeds.append(Embed(Author("stayc", ""), content_data))
-    # elif len(images_url) == 1:
-    #     embeds.append(Embed(Author(nickname, profile_image), content_data, image=Image(images_url[0])))
-    # else:
-    #     embeds.append(
-    #         Embed(Author(nickname, profile_image), content_data, image=Image(images_url[0]), url=profile_image))
-    #     for i in range(1, len(images_url)):
-    #         embeds.append(Embed(image=Image(images_url[i]), url=profile_image))
-
-    # if len(images) > 0:
-    #     for image in images:
-    #         embeds.append(Embed(image=Image(image), url=profile_image))
-
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
-    for index, url in enumerate(images):
+    for index, image_url in enumerate(sns_info.images):
         if index == 0:
-            embeds.append(Embed(Author(account, profile_image), content, image=Image(url), url=profile_image))
+            embeds.append(
+                Embed(description=sns_info.content, url=sns_info.profile.url)
+                .set_author(name=sns_info.profile.name, icon_url=sns_info.profile.url)
+                .set_image(url=image_url)
+                .set_footer(text=post_source(sns_info.post_link)[0],
+                            icon_url=post_source(sns_info.post_link)[1]))
         else:
-            embeds.append(Embed(image=Image(url), url=profile_image))
-
-    # 將 JSON 數據轉換為字符串
-    data_json = json.dumps(Message(link, embeds), default=custom_encoder)
-    # data_json = json.dumps(Message("", embeds), default=custom_encoder)
-    print(data_json)
-
-    # 使用 POST 請求將消息發送到 Webhook
-    response = requests.post(webhook_url, data=data_json, headers={'Content-Type': 'application/json'})
-
-    # 檢查是否成功發送消息
-    if response.status_code == 204:
-        print('消息已成功發送到 Discord 頻道！')
-    else:
-        print('消息發送失敗。HTTP 響應碼：', response.status_code)
-        print('響應內容：', response.text)
+            embeds.append(Embed(url=sns_info.profile.url)
+                          .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
+                          .set_image(url=image_url))
+    return embeds
 
 
-# 獲取帳戶的信息
-# user = instaloader.Profile.from_username(L.context, profile)
+# 調用event函式庫
+@client.event
+# 當機器人完成啟動
+async def on_ready():
+    print(f"目前登入身份 --> {client.user}")
 
-# sorted(user.get_posts(), key=lambda p: -p.date_utc)
 
-# 遍歷並打印帳戶的帖子
-# all_post = user.get_posts()
-# for index, post in enumerate(all_post):
-#     last_updated = read_last_updated()
-#     if not post.is_pinned:
-#         create_time = post.date_utc
-#         if last_updated < str(create_time):
-#             images_or_videos_url = []
-#             for image in post.get_sidecar_nodes():
-#                 if image.is_video:
-#                     # 如果是视频，获取视频链接
-#                     video_url = image.video_url
-#                     images_or_videos_url.append(video_url)
-#                 else:
-#                     # 如果是图片，获取图片链接
-#                     img_url = image.display_url
-#                     images_or_videos_url.append(img_url)
-#             print((post.caption, images_or_videos_url, create_time))
-#             write_last_updated(str(create_time))
-#             send_message(post.url)
-#         else:
-#             print("抓取完成")
-#             break
+@client.event
+# 當頻道有新訊息
+async def on_message(message):
+    # 排除機器人本身的訊息，避免無限循環
+    # role_mentions.member.id
+    if message.author == client.user:
+        return
+    for role in message.role_mentions:
+        for member in role.members:
+            if member.id == client.user.id:
+                # 新訊息包含Hello，回覆Hello, world!
+                if "close" in message.content:
+                    await client.close()
+                if "twitter.com" or "x.com" in message.content:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
+                    if tweet_url:
+                        print("提取的推文链接:", tweet_url.group(0))
+                        await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
+                            twitter_crawler.fetch_data_from_tweet(tweet_url.group(0))))
+                        await loading_message.delete()
+                    else:
+                        print("未找到推文链接")
+                        await loading_message.delete()
+                    # await message.channel.send("開始解析")
+                elif "instagram.com" in message.content:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    instagram_url = re.search(r'(https://instagram.com/[^?]+)', message.content)
+                    if instagram_url:
+                        print("提取的推文链接:", instagram_url.group(0))
+                        await message.channel.send(content=instagram_url.group(0),
+                                                   embeds=generate_embeds(instagram_crawler.fetch_data_from_instagram(
+                                                       instagram_url.group(0))))
+                        await loading_message.delete()
+                    else:
+                        print("未找到推文链接")
+                        await loading_message.delete()
+                elif "weverse.io" in message.content:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    weverse_url = re.search(r'(https://weverse.io/[^?]+)', message.content)
+                    if weverse_url:
+                        print("提取的推文链接:", weverse_url.group(0))
+                        await message.channel.send(content=weverse_url.group(0),
+                                                   embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
+                                                       weverse_url.group(0))))
+                        await loading_message.delete()
+                    else:
+                        print("未找到推文链接")
+                        await loading_message.delete()
 
-send_message(link, content, images)
+
+client.run(BOT_TOKEN)
