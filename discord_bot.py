@@ -1,4 +1,5 @@
 import json
+***REMOVED***
 
 ***REMOVED***quests
 
@@ -44,6 +45,15 @@ def post_source(url: str):
 ***REMOVED*** "Weverse", "https://image.winudf.com/v2/image1/Y28uYmVueC53ZXZlcnNlX2ljb25fMTY5NjQwNDE0MF8wMTM/icon.webp?w=140&fakeurl=1&type=.webp"
 
 
+def discord_webhook(channel: str):
+    if channel == "STAYC":
+***REMOVED*** os.environ["STAYC_WEBHOOK"]
+    elif channel == "LIGHTSUM":
+***REMOVED*** os.environ["LIGHTSUM_WEBHOOK"]
+    elif channel == "EL7Z UP":
+***REMOVED*** os.environ["EL7ZUP_WEBHOOK"]
+
+
 async def send_message(webhook_url: str, sns_info: SnsInfo):
     async with aiohttp.ClientSession() as session:
         webhook = Webhook.from_url(webhook_url, session=session)
@@ -62,7 +72,7 @@ async def send_message(webhook_url: str, sns_info: SnsInfo):
                               .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
                               .set_image(url=image_url))
         await webhook.send(content=sns_info.post_link, embeds=embeds)
-
+        print('消息已成功發送到 Discord 頻道！')
 
 # 運行異步函數
 # if __name__ == '__main__':

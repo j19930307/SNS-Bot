@@ -1,0 +1,29 @@
+name: Twitter Link Preview Bot
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  run-python:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout代码
+      uses: actions/checkout@v2
+
+    - name: 设置 Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9' # 指定您想要使用的 Python 版本
+
+    - name: install python packages
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 运行 Python 脚本
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      run:
+        python twitter_bot.py

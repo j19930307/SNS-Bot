@@ -6,6 +6,7 @@ from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
 
 from SnsInfo import SnsInfo, Profile
+from discord_bot ***REMOVED***_webhook
 
 
 def fetch_data_from_tweet(tweet_url: str):
@@ -14,7 +15,7 @@ def fetch_data_from_tweet(tweet_url: str):
     options.add_argument('--headless')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
-    driver.implicitly_wait(10)
+    # driver.implicitly_wait(5)
     driver.get(tweet_url)
 
     sleep(7)
@@ -80,11 +81,11 @@ def fetch_data_from_tweet(tweet_url: str):
 
 def get_discord_webhook(tweet_url: str):
     if "CUBE_LIGHTSUM" in tweet_url:
-***REMOVED*** "https://discord.com/api/webhooks/1162632189553410149/-jjVQRTX3kIhzDbOHecPMi6cOtqixrmS964LOsY082ymcYyDS5lvoyCnuF0FVZu3aZFW"
+***REMOVED*** discord_webhook("LIGHTSUM")
     elif "STAYC_official" in tweet_url or "STAYC_talk" in tweet_url:
-***REMOVED*** "https://discord.com/api/webhooks/1162736592457310268/9UDH3V-4VhKACIOXvkzEmc-1M-9Sj5o94sOlIewtGWj0WsaEuVFBrpynWNBLNsCnEesk"
+***REMOVED*** discord_webhook("STAYC")
     elif "_EL7ZUPofficial" in tweet_url:
-***REMOVED*** "https://discord.com/api/webhooks/1152119906981126174/AE_mVQ_WF_DZowhiS8lDSpcZipiy8lM74z7LflPOzbKfE-auqAKiVbimcb-dkxXooOTK"
+***REMOVED*** discord_webhook("EL7Z UP")
 
 
 def get_profile_from_tweet(tweet_url: str):

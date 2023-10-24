@@ -3,9 +3,9 @@ import asyncio
 ***REMOVED***_bot
 ***REMOVED***
 
-fetch_url = "https://weverse.io/wooah/artist/4-137746729"
+fetch_url = "https://weverse.io/stayc/artist/2-128577238"
 
-webhook_url = weverse_crawler.get_discord_webhook("_EL7ZUPofficial")
+webhook_url = weverse_crawler.get_discord_webhook(fetch_url)
 
 # 測試
 # webhook_url = "https://discord.com/api/webhooks/1162632449545752597/sCvieQPZNw5G9XX1iPS-N3WusXnPfrcUU3YjPHlnBzI_CepxO7t4jGKFlRVFDvJNVhNc"

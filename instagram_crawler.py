@@ -1,6 +1,7 @@
 from instagrapi import Client
 
 from SnsInfo import SnsInfo, Profile
+from discord_bot ***REMOVED***_webhook
 
 
 def fetch_data_from_instagram(url: str):
@@ -30,8 +31,8 @@ def fetch_data_from_instagram(url: str):
 
 def get_discord_webhook(id: str):
     if id == "47318740444":  # LIGHTSUM
-***REMOVED*** "https://discord.com/api/webhooks/1162632189553410149/-jjVQRTX3kIhzDbOHecPMi6cOtqixrmS964LOsY082ymcYyDS5lvoyCnuF0FVZu3aZFW"
+***REMOVED*** discord_webhook("LIGHTSUM")
     elif id == "42987402481":  # STAYC
-***REMOVED*** "https://discord.com/api/webhooks/1162736592457310268/9UDH3V-4VhKACIOXvkzEmc-1M-9Sj5o94sOlIewtGWj0WsaEuVFBrpynWNBLNsCnEesk"
+***REMOVED*** discord_webhook("STAYC")
     elif id == "61470632061":  # EL7Z UP
-***REMOVED*** "https://discord.com/api/webhooks/1152119906981126174/AE_mVQ_WF_DZowhiS8lDSpcZipiy8lM74z7LflPOzbKfE-auqAKiVbimcb-dkxXooOTK"
+***REMOVED*** discord_webhook("EL7Z UP")
