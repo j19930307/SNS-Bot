@@ -60,11 +60,11 @@ def generate_embeds(tweet_url: str):
                     tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
     ***REMOVED***
                         print("提取的推文链接:", tweet_url.group(0))
-                        loading_message.delete()
+    ***REMOVED***
                         await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(tweet_url.group(0)))
     ***REMOVED***
                         print("未找到推文链接")
-                        loading_message.delete()
+    ***REMOVED***
                     # await message.channel.send("開始解析")
 
 
