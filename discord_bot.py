@@ -37,7 +37,7 @@ import aiohttp
 
 
 def post_source(url: str):
-    if "twitter" in url or "x" in url:
+    if "twitter.com" in url or "x.com" in url:
 ***REMOVED*** "X", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/X_icon_2.svg/2048px-X_icon_2.svg.png"
     elif "instagram" in url:
 ***REMOVED*** "Instagram", "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/600px-Instagram_icon.png"

@@ -26,4 +26,4 @@ jobs:
       env:
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       run:
-        python twitter_bot.py
+        python main.py
