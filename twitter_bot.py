@@ -7,7 +7,7 @@ from discord import message, Embed
 import twitter_crawler
 from discord_bot import post_source
 
-BOT_TOKEN = os.environ["DISCORD_WEBHOOK"]
+BOT_TOKEN = os.environ["BOT_TOKEN"]
 
 # client是跟discord連接，intents是要求機器人的權限
 intents = discord.Intents.all()
