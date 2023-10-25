@@ -58,6 +58,8 @@ async def send_message(webhook_url: str, sns_info: SnsInfo):
     async with aiohttp.ClientSession() as session:
         webhook = Webhook.from_url(webhook_url, session=session)
         embeds = []
+        video_list = []
+
         # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
         for index, image_url in enumerate(sns_info.images):
             if index == 0:
@@ -67,11 +69,19 @@ async def send_message(webhook_url: str, sns_info: SnsInfo):
                     .set_image(url=image_url)
                     .set_footer(text=post_source(sns_info.post_link)[0],
                                 icon_url=post_source(sns_info.post_link)[1]))
+                if ".mp4" in image_url:
+                    video_list.append(image_url)
 ***REMOVED***
                 embeds.append(Embed(url=sns_info.profile.url)
                               .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
                               .set_image(url=image_url))
+                if ".mp4" in image_url:
+                    video_list.append(image_url)
         await webhook.send(content=sns_info.post_link, embeds=embeds)
+
+        for link in video_list:
+            await webhook.send(content=link)
+
         print('消息已成功發送到 Discord 頻道！')
 
 # 運行異步函數
