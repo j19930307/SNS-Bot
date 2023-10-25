@@ -4,6 +4,7 @@ import re
 import discord
 from discord import message, Embed
 
+import bstage_crawler
 import instagram_crawler
 import twitter_crawler
 import twitter_graphql_crawler
@@ -24,12 +25,15 @@ def generate_embeds(sns_info: SnsInfo):
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
     for index, image_url in enumerate(sns_info.images):
         if index == 0:
-            embeds.append(
-                Embed(description=sns_info.content, url=sns_info.profile.url)
-                .set_author(name=sns_info.profile.name, icon_url=sns_info.profile.url)
-                .set_image(url=image_url)
-                .set_footer(text=post_source(sns_info.post_link)[0],
-                            icon_url=post_source(sns_info.post_link)[1]))
+            source = post_source(sns_info.post_link)
+            embed = (
+                Embed(description=sns_info.content, url=sns_info.profile.url).set_author(name=sns_info.profile.name,
+                                                                                         icon_url=sns_info.profile.url)
+                .set_image(url=image_url))
+            if source is not None:
+                embed.set_footer(text=post_source(sns_info.post_link)[0],
+                                 icon_url=post_source(sns_info.post_link)[1])
+            embeds.append(embed)
         else:
             embeds.append(Embed(url=sns_info.profile.url)
                           .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
@@ -112,6 +116,19 @@ async def on_message(message):
                 await message.channel.send(content=weverse_url.group(0),
                                            embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
                                                weverse_url.group(0))))
+                await loading_message.delete()
+            else:
+                print("未找到推文链接")
+                await loading_message.delete()
+        elif "h1key-official.com" in message.content:
+            await message.delete()
+            loading_message = await message.channel.send(content="處理中，請稍後...")
+            bstage_url = re.search(r'(https://h1key-official.com/story/feed/[^?]+)', message.content)
+            if bstage_url:
+                print("提取的推文链接:", bstage_url.group(0))
+                await message.channel.send(content=bstage_url.group(0),
+                                           embeds=generate_embeds(bstage_crawler.fetch_data(
+                                               bstage_url.group(0))))
                 await loading_message.delete()
             else:
                 print("未找到推文链接")
