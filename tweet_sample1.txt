@@ -1,0 +1,415 @@
+{
+    "data": {
+        "tweetResult": {
+            "result": {
+                "__typename": "Tweet",
+                "rest_id": "1716921683553157250",
+                "core": {
+                    "user_results": {
+                        "result": {
+                            "__typename": "User",
+                            "id": "VXNlcjoxNjM4NjUwNTU4NDUzMTAwNTUw",
+                            "rest_id": "1638650558453100550",
+                            "affiliates_highlighted_label": {},
+                            "is_blue_verified": false,
+                            "profile_image_shape": "Circle",
+                            "legacy": {
+                                "created_at": "Wed Mar 22 21:15:20 +0000 2023",
+                                "default_profile": true,
+                                "default_profile_image": false,
+                                "description": "\uD83C\uDDFA\uD83C\uDDE6 fanbase for @WJSN_Cosmic",
+                                "entities": {
+                                    "description": {
+                                        "urls": []
+                                    },
+                                    "url": {
+                                        "urls": [
+                                            {
+                                                "display_url": "t.me/wjsnua",
+                                                "expanded_url": "https://t.me/wjsnua",
+                                                "url": "https://t.co/cOuuC5crnw",
+                                                "indices": [
+                                                    0,
+                                                    23
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "fast_followers_count": 0,
+                                "favourites_count": 55,
+                                "followers_count": 28,
+                                "friends_count": 65,
+                                "has_custom_timelines": false,
+                                "is_translator": false,
+                                "listed_count": 0,
+                                "location": "",
+                                "media_count": 178,
+                                "name": "WJSN UKRAINE \uD83E\uDE90",
+                                "normal_followers_count": 28,
+                                "pinned_tweet_ids_str": [
+                                    "1716131272483905762"
+                                ],
+                                "possibly_sensitive": false,
+                                "profile_banner_url": "https://pbs.twimg.com/profile_banners/1638650558453100550/1697379593",
+                                "profile_image_url_https": "https://pbs.twimg.com/profile_images/1713519380259086337/YlZ66dPL_normal.jpg",
+                                "profile_interstitial_type": "",
+                                "screen_name": "WJSNUA",
+                                "statuses_count": 299,
+                                "translator_type": "none",
+                                "url": "https://t.co/cOuuC5crnw",
+                                "verified": false,
+                                "withheld_in_countries": []
+                            }
+                        }
+                    }
+                },
+                "unmention_data": {},
+                "edit_control": {
+                    "edit_tweet_ids": [
+                        "1716921683553157250"
+                    ],
+                    "editable_until_msecs": "1698184602000",
+                    "is_edit_eligible": false,
+                    "edits_remaining": "5"
+                },
+                "is_translatable": true,
+                "views": {
+                    "count": "395",
+                    "state": "EnabledWithCount"
+                },
+                "source": "<a href=\"http://twitter.com/download/iphone\" rel=\"nofollow\">Twitter for iPhone</a>",
+                "legacy": {
+                    "bookmark_count": 1,
+                    "bookmarked": false,
+                    "created_at": "Tue Oct 24 20:56:42 +0000 2023",
+                    "conversation_id_str": "1716921683553157250",
+                    "display_text_range": [
+                        0,
+                        157
+                    ],
+                    "entities": {
+                        "media": [
+                            {
+                                "display_url": "pic.twitter.com/ggMYzjrHW5",
+                                "expanded_url": "https://twitter.com/kei_jjoa/status/1716829149053264326/video/1",
+                                "id_str": "1716828766654373888",
+                                "indices": [
+                                    134,
+                                    157
+                                ],
+                                "media_key": "7_1716828766654373888",
+                                "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1716828766654373888/pu/img/l1uO-NCv-S70HaSu.jpg",
+                                "source_status_id_str": "1716829149053264326",
+                                "source_user_id_str": "1201865447605321730",
+                                "type": "video",
+                                "url": "https://t.co/ggMYzjrHW5",
+                                "additional_media_info": {
+                                    "monetizable": false,
+                                    "source_user": {
+                                        "user_results": {
+                                            "result": {
+                                                "__typename": "User",
+                                                "id": "VXNlcjoxMjAxODY1NDQ3NjA1MzIxNzMw",
+                                                "rest_id": "1201865447605321730",
+                                                "affiliates_highlighted_label": {},
+                                                "is_blue_verified": false,
+                                                "profile_image_shape": "Circle",
+                                                "legacy": {
+                                                    "created_at": "Tue Dec 03 14:07:22 +0000 2019",
+                                                    "default_profile": true,
+                                                    "default_profile_image": false,
+                                                    "description": "",
+                                                    "entities": {
+                                                        "description": {
+                                                            "urls": []
+                                                        }
+                                                    },
+                                                    "fast_followers_count": 0,
+                                                    "favourites_count": 1,
+                                                    "followers_count": 16,
+                                                    "friends_count": 0,
+                                                    "has_custom_timelines": false,
+                                                    "is_translator": false,
+                                                    "listed_count": 0,
+                                                    "location": "",
+                                                    "media_count": 22,
+                                                    "name": "ㅈㄱ",
+                                                    "normal_followers_count": 16,
+                                                    "pinned_tweet_ids_str": [],
+                                                    "possibly_sensitive": false,
+                                                    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1716651270507986944/qWkAeWY9_normal.jpg",
+                                                    "profile_interstitial_type": "",
+                                                    "screen_name": "kei_jjoa",
+                                                    "statuses_count": 22,
+                                                    "translator_type": "none",
+                                                    "verified": false,
+                                                    "withheld_in_countries": []
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "ext_media_availability": {
+                                    "status": "Available"
+                                },
+                                "sizes": {
+                                    "large": {
+                                        "h": 658,
+                                        "w": 1280,
+                                        "resize": "fit"
+                                    },
+                                    "medium": {
+                                        "h": 617,
+                                        "w": 1200,
+                                        "resize": "fit"
+                                    },
+                                    "small": {
+                                        "h": 350,
+                                        "w": 680,
+                                        "resize": "fit"
+                                    },
+                                    "thumb": {
+                                        "h": 150,
+                                        "w": 150,
+                                        "resize": "crop"
+                                    }
+                                },
+                                "original_info": {
+                                    "height": 658,
+                                    "width": 1280,
+                                    "focus_rects": []
+                                },
+                                "video_info": {
+                                    "aspect_ratio": [
+                                        640,
+                                        329
+                                    ],
+                                    "duration_millis": 77740,
+                                    "variants": [
+                                        {
+                                            "bitrate": 256000,
+                                            "content_type": "video/mp4",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/vid/avc1/524x270/nVpNgv5zP5Emv5m0.mp4?tag=12"
+                                        },
+                                        {
+                                            "bitrate": 2176000,
+                                            "content_type": "video/mp4",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/vid/avc1/1280x658/zdQroU-ZxL9WVj12.mp4?tag=12"
+                                        },
+                                        {
+                                            "bitrate": 832000,
+                                            "content_type": "video/mp4",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/vid/avc1/700x360/uJ_M9-ssedfffxjk.mp4?tag=12"
+                                        },
+                                        {
+                                            "content_type": "application/x-mpegURL",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/pl/B0dbpm0uHWyshxVh.m3u8?tag=12&container=fmp4"
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "user_mentions": [],
+                        "urls": [],
+                        "hashtags": [
+                            {
+                                "indices": [
+                                    77,
+                                    82
+                                ],
+                                "text": "WJSN"
+                            },
+                            {
+                                "indices": [
+                                    83,
+                                    91
+                                ],
+                                "text": "YEOREUM"
+                            },
+                            {
+                                "indices": [
+                                    92,
+                                    99
+                                ],
+                                "text": "EL7ZUP"
+                            },
+                            {
+                                "indices": [
+                                    100,
+                                    111
+                                ],
+                                "text": "LeeYeoreum"
+                            },
+                            {
+                                "indices": [
+                                    112,
+                                    117
+                                ],
+                                "text": "우주소녀"
+                            },
+                            {
+                                "indices": [
+                                    118,
+                                    121
+                                ],
+                                "text": "여름"
+                            },
+                            {
+                                "indices": [
+                                    122,
+                                    126
+                                ],
+                                "text": "엘즈업"
+                            },
+                            {
+                                "indices": [
+                                    127,
+                                    131
+                                ],
+                                "text": "이여름"
+                            }
+                        ],
+                        "symbols": []
+                    },
+                    "extended_entities": {
+                        "media": [
+                            {
+                                "display_url": "pic.twitter.com/ggMYzjrHW5",
+                                "expanded_url": "https://twitter.com/kei_jjoa/status/1716829149053264326/video/1",
+                                "id_str": "1716828766654373888",
+                                "indices": [
+                                    134,
+                                    157
+                                ],
+                                "media_key": "7_1716828766654373888",
+                                "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1716828766654373888/pu/img/l1uO-NCv-S70HaSu.jpg",
+                                "source_status_id_str": "1716829149053264326",
+                                "source_user_id_str": "1201865447605321730",
+                                "type": "video",
+                                "url": "https://t.co/ggMYzjrHW5",
+                                "additional_media_info": {
+                                    "monetizable": false,
+                                    "source_user": {
+                                        "user_results": {
+                                            "result": {
+                                                "__typename": "User",
+                                                "id": "VXNlcjoxMjAxODY1NDQ3NjA1MzIxNzMw",
+                                                "rest_id": "1201865447605321730",
+                                                "affiliates_highlighted_label": {},
+                                                "is_blue_verified": false,
+                                                "profile_image_shape": "Circle",
+                                                "legacy": {
+                                                    "created_at": "Tue Dec 03 14:07:22 +0000 2019",
+                                                    "default_profile": true,
+                                                    "default_profile_image": false,
+                                                    "description": "",
+                                                    "entities": {
+                                                        "description": {
+                                                            "urls": []
+                                                        }
+                                                    },
+                                                    "fast_followers_count": 0,
+                                                    "favourites_count": 1,
+                                                    "followers_count": 16,
+                                                    "friends_count": 0,
+                                                    "has_custom_timelines": false,
+                                                    "is_translator": false,
+                                                    "listed_count": 0,
+                                                    "location": "",
+                                                    "media_count": 22,
+                                                    "name": "ㅈㄱ",
+                                                    "normal_followers_count": 16,
+                                                    "pinned_tweet_ids_str": [],
+                                                    "possibly_sensitive": false,
+                                                    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1716651270507986944/qWkAeWY9_normal.jpg",
+                                                    "profile_interstitial_type": "",
+                                                    "screen_name": "kei_jjoa",
+                                                    "statuses_count": 22,
+                                                    "translator_type": "none",
+                                                    "verified": false,
+                                                    "withheld_in_countries": []
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "ext_media_availability": {
+                                    "status": "Available"
+                                },
+                                "sizes": {
+                                    "large": {
+                                        "h": 658,
+                                        "w": 1280,
+                                        "resize": "fit"
+                                    },
+                                    "medium": {
+                                        "h": 617,
+                                        "w": 1200,
+                                        "resize": "fit"
+                                    },
+                                    "small": {
+                                        "h": 350,
+                                        "w": 680,
+                                        "resize": "fit"
+                                    },
+                                    "thumb": {
+                                        "h": 150,
+                                        "w": 150,
+                                        "resize": "crop"
+                                    }
+                                },
+                                "original_info": {
+                                    "height": 658,
+                                    "width": 1280,
+                                    "focus_rects": []
+                                },
+                                "video_info": {
+                                    "aspect_ratio": [
+                                        640,
+                                        329
+                                    ],
+                                    "duration_millis": 77740,
+                                    "variants": [
+                                        {
+                                            "bitrate": 256000,
+                                            "content_type": "video/mp4",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/vid/avc1/524x270/nVpNgv5zP5Emv5m0.mp4?tag=12"
+                                        },
+                                        {
+                                            "bitrate": 2176000,
+                                            "content_type": "video/mp4",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/vid/avc1/1280x658/zdQroU-ZxL9WVj12.mp4?tag=12"
+                                        },
+                                        {
+                                            "bitrate": 832000,
+                                            "content_type": "video/mp4",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/vid/avc1/700x360/uJ_M9-ssedfffxjk.mp4?tag=12"
+                                        },
+                                        {
+                                            "content_type": "application/x-mpegURL",
+                                            "url": "https://video.twimg.com/ext_tw_video/1716828766654373888/pu/pl/B0dbpm0uHWyshxVh.m3u8?tag=12&container=fmp4"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "favorite_count": 5,
+                    "favorited": false,
+                    "full_text": "[ \uD83C\uDFA5 ] › › 231024 ☀️\n\nВиступ з 'Cloud 9' на японському фан-концерті EL7Z UP \n\n#WJSN #YEOREUM #EL7ZUP #LeeYeoreum #우주소녀 #여름 #엘즈업 #이여름\n\n https://t.co/ggMYzjrHW5",
+                    "is_quote_status": false,
+                    "lang": "uk",
+                    "possibly_sensitive": false,
+                    "possibly_sensitive_editable": true,
+                    "quote_count": 0,
+                    "reply_count": 1,
+                    "retweet_count": 0,
+                    "retweeted": false,
+                    "user_id_str": "1638650558453100550",
+                    "id_str": "1716921683553157250"
+                }
+            }
+        }
+    }
+}

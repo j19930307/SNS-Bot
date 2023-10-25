@@ -24,7 +24,7 @@ def fetch_data_from_tweet(tweet_url: str):
     html = driver.page_source
     start = html.index("<html")
     end = html.index("</html>") + 7
-    # print(html[start:end])
+    print(html[start:end])
     soup = BeautifulSoup(html[start:end], 'lxml')
     description = soup.find("meta", property="og:description")
     images = []

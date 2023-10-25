@@ -1,0 +1,307 @@
+{
+    "data": {
+        "tweetResult": {
+            "result": {
+                "__typename": "Tweet",
+                "rest_id": "1716803654622351577",
+                "core": {
+                    "user_results": {
+                        "result": {
+                            "__typename": "User",
+                            "id": "VXNlcjozODU4NTg4MDc0",
+                            "rest_id": "3858588074",
+                            "affiliates_highlighted_label": {},
+                            "is_blue_verified": true,
+                            "profile_image_shape": "Circle",
+                            "legacy": {
+                                "created_at": "Sun Oct 11 12:49:41 +0000 2015",
+                                "default_profile": false,
+                                "default_profile_image": false,
+                                "description": "デフォルメ絵イラストレーター\uD83D\uDC69‍\uD83C\uDFA8\uD83C\uDFA8 お仕事募集中( 企業案件＋実績公開可のみ / 個人依頼の場合は応相談 )  ご依頼の連絡先✉➡【 rizunm26@gmail.com 】  \uD83D\uDE45‍♀️❌⚠️ Reproduction is prohibited. / 絵の転載・加工・自作発言・トレス禁止",
+                                "entities": {
+                                    "description": {
+                                        "urls": []
+                                    },
+                                    "url": {
+                                        "urls": [
+                                            {
+                                                "display_url": "lit.link/rizunm",
+                                                "expanded_url": "https://lit.link/rizunm",
+                                                "url": "https://t.co/cHssffrbN2",
+                                                "indices": [
+                                                    0,
+                                                    23
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "fast_followers_count": 0,
+                                "favourites_count": 90638,
+                                "followers_count": 262362,
+                                "friends_count": 1416,
+                                "has_custom_timelines": true,
+                                "is_translator": false,
+                                "listed_count": 2154,
+                                "location": "",
+                                "media_count": 3326,
+                                "name": "リズ",
+                                "normal_followers_count": 262362,
+                                "pinned_tweet_ids_str": [
+                                    "1602579088945864704"
+                                ],
+                                "possibly_sensitive": false,
+                                "profile_banner_url": "https://pbs.twimg.com/profile_banners/3858588074/1694349272",
+                                "profile_image_url_https": "https://pbs.twimg.com/profile_images/1319483522243915776/Bi8NLif0_normal.png",
+                                "profile_interstitial_type": "",
+                                "screen_name": "rizuNM",
+                                "statuses_count": 65709,
+                                "translator_type": "none",
+                                "url": "https://t.co/cHssffrbN2",
+                                "verified": false,
+                                "withheld_in_countries": []
+                            },
+                            "professional": {
+                                "rest_id": "1460761326343827457",
+                                "professional_type": "Creator",
+                                "category": [
+                                    {
+                                        "id": 1023,
+                                        "name": "插畫家",
+                                        "icon_name": "IconBriefcaseStroke"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "unmention_data": {},
+                "edit_control": {
+                    "edit_tweet_ids": [
+                        "1716803654622351577"
+                    ],
+                    "editable_until_msecs": "1698156462000",
+                    "is_edit_eligible": false,
+                    "edits_remaining": "5"
+                },
+                "is_translatable": false,
+                "views": {
+                    "count": "164195",
+                    "state": "EnabledWithCount"
+                },
+                "source": "<a href=\"https://mobile.twitter.com\" rel=\"nofollow\">Twitter Web App</a>",
+                "legacy": {
+                    "bookmark_count": 94,
+                    "bookmarked": false,
+                    "created_at": "Tue Oct 24 13:07:42 +0000 2023",
+                    "conversation_id_str": "1716803654622351577",
+                    "display_text_range": [
+                        0,
+                        0
+                    ],
+                    "entities": {
+                        "media": [
+                            {
+                                "display_url": "pic.twitter.com/G25usyVvrW",
+                                "expanded_url": "https://twitter.com/rizuNM/status/1716803654622351577/photo/1",
+                                "id_str": "1716803508748574720",
+                                "indices": [
+                                    0,
+                                    23
+                                ],
+                                "media_key": "3_1716803508748574720",
+                                "media_url_https": "https://pbs.twimg.com/media/F9NPsfgaYAAEZvg.jpg",
+                                "type": "photo",
+                                "url": "https://t.co/G25usyVvrW",
+                                "ext_media_availability": {
+                                    "status": "Available"
+                                },
+                                "features": {
+                                    "large": {
+                                        "faces": []
+                                    },
+                                    "medium": {
+                                        "faces": []
+                                    },
+                                    "small": {
+                                        "faces": []
+                                    },
+                                    "orig": {
+                                        "faces": []
+                                    }
+                                },
+                                "sizes": {
+                                    "large": {
+                                        "h": 2048,
+                                        "w": 946,
+                                        "resize": "fit"
+                                    },
+                                    "medium": {
+                                        "h": 1200,
+                                        "w": 554,
+                                        "resize": "fit"
+                                    },
+                                    "small": {
+                                        "h": 680,
+                                        "w": 314,
+                                        "resize": "fit"
+                                    },
+                                    "thumb": {
+                                        "h": 150,
+                                        "w": 150,
+                                        "resize": "crop"
+                                    }
+                                },
+                                "original_info": {
+                                    "height": 2688,
+                                    "width": 1242,
+                                    "focus_rects": [
+                                        {
+                                            "x": 0,
+                                            "y": 390,
+                                            "w": 1242,
+                                            "h": 696
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 117,
+                                            "w": 1242,
+                                            "h": 1242
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 30,
+                                            "w": 1242,
+                                            "h": 1416
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 0,
+                                            "w": 1242,
+                                            "h": 2484
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 0,
+                                            "w": 1242,
+                                            "h": 2688
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "user_mentions": [],
+                        "urls": [],
+                        "hashtags": [],
+                        "symbols": []
+                    },
+                    "extended_entities": {
+                        "media": [
+                            {
+                                "display_url": "pic.twitter.com/G25usyVvrW",
+                                "expanded_url": "https://twitter.com/rizuNM/status/1716803654622351577/photo/1",
+                                "id_str": "1716803508748574720",
+                                "indices": [
+                                    0,
+                                    23
+                                ],
+                                "media_key": "3_1716803508748574720",
+                                "media_url_https": "https://pbs.twimg.com/media/F9NPsfgaYAAEZvg.jpg",
+                                "type": "photo",
+                                "url": "https://t.co/G25usyVvrW",
+                                "ext_media_availability": {
+                                    "status": "Available"
+                                },
+                                "features": {
+                                    "large": {
+                                        "faces": []
+                                    },
+                                    "medium": {
+                                        "faces": []
+                                    },
+                                    "small": {
+                                        "faces": []
+                                    },
+                                    "orig": {
+                                        "faces": []
+                                    }
+                                },
+                                "sizes": {
+                                    "large": {
+                                        "h": 2048,
+                                        "w": 946,
+                                        "resize": "fit"
+                                    },
+                                    "medium": {
+                                        "h": 1200,
+                                        "w": 554,
+                                        "resize": "fit"
+                                    },
+                                    "small": {
+                                        "h": 680,
+                                        "w": 314,
+                                        "resize": "fit"
+                                    },
+                                    "thumb": {
+                                        "h": 150,
+                                        "w": 150,
+                                        "resize": "crop"
+                                    }
+                                },
+                                "original_info": {
+                                    "height": 2688,
+                                    "width": 1242,
+                                    "focus_rects": [
+                                        {
+                                            "x": 0,
+                                            "y": 390,
+                                            "w": 1242,
+                                            "h": 696
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 117,
+                                            "w": 1242,
+                                            "h": 1242
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 30,
+                                            "w": 1242,
+                                            "h": 1416
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 0,
+                                            "w": 1242,
+                                            "h": 2484
+                                        },
+                                        {
+                                            "x": 0,
+                                            "y": 0,
+                                            "w": 1242,
+                                            "h": 2688
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "favorite_count": 4999,
+                    "favorited": false,
+                    "full_text": "https://t.co/G25usyVvrW",
+                    "is_quote_status": false,
+                    "lang": "zxx",
+                    "possibly_sensitive": false,
+                    "possibly_sensitive_editable": true,
+                    "quote_count": 8,
+                    "reply_count": 3,
+                    "retweet_count": 782,
+                    "retweeted": false,
+                    "user_id_str": "3858588074",
+                    "id_str": "1716803654622351577"
+                }
+            }
+        }
+    }
+}

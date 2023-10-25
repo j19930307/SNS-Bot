@@ -6,6 +6,7 @@ from discord import message, Embed
 
 import instagram_crawler
 import twitter_crawler
+import twitter_graphql_crawler
 import weverse_crawler
 from SnsInfo import SnsInfo
 from discord_bot import post_source
@@ -65,19 +66,30 @@ async def on_message(message):
     if mentions(message, client.user.id):
         if "close" in message.content:
             await client.close()
-        elif "twitter.com" in message.content or "x.com" in message.content:
+        elif "twitter.com" in message.content:
             await message.delete()
             loading_message = await message.channel.send(content="處理中，請稍後...")
             tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
             if tweet_url:
                 print("提取的推文链接:", tweet_url.group(0))
                 await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
-                    twitter_crawler.fetch_data_from_tweet(tweet_url.group(0))))
+                    twitter_graphql_crawler.fetch_data(tweet_url.group(0))))
                 await loading_message.delete()
             else:
                 print("未找到推文链接")
                 await loading_message.delete()
-            # await message.channel.send("開始解析")
+        elif "x.com" in message.content:
+            await message.delete()
+            loading_message = await message.channel.send(content="處理中，請稍後...")
+            tweet_url = re.search(r'(https://x.com/[^?]+)', message.content)
+            if tweet_url:
+                print("提取的推文链接:", tweet_url.group(0))
+                await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
+                    twitter_graphql_crawler.fetch_data(tweet_url.group(0))))
+                await loading_message.delete()
+            else:
+                print("未找到推文链接")
+                await loading_message.delete()
         elif "instagram.com" in message.content:
             await message.delete()
             loading_message = await message.channel.send(content="處理中，請稍後...")
