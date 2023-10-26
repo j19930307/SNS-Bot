@@ -18,10 +18,9 @@ def fetch_data_from_weverse(url: str):
     driver.implicitly_wait(10)
     driver.get(url)
 
-    driver.find_element(By.CLASS_NAME, "ProfileThumbnailView_thumbnail__8W3E7")
+    driver.find_element(By.CLASS_NAME, "WeverseViewer")
 
     html = driver.page_source
-    # print(html)
 
     soup = BeautifulSoup(html, 'lxml')
     # 發文者頭像
