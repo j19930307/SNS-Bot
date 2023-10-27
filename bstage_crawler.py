@@ -36,8 +36,15 @@ def fetch_data(url: str):
         content = data["props"]["pageProps"]["post"]["body"]
         poster_name = data["props"]["pageProps"]["post"]["author"]["nickname"]
         poster_image_url = data["props"]["pageProps"]["post"]["author"]["avatarImgPath"]
-        images_url = data["props"]["pageProps"]["post"]["images"]
+        images_url = []
+        videos_url = []
+        try:
+            images_url.extend(data["props"]["pageProps"]["post"]["images"])
+        except KeyError:
+            print("找不到圖片")
+            images_url.extend(data["props"]["pageProps"]["post"]["video"]["thumbnailPaths"])
+            videos_url.append(data["props"]["pageProps"]["post"]["video"]["hlsPath"])
 ***REMOVED*** SnsInfo(post_link=url, profile=Profile(name=poster_name, url=poster_image_url), content=content,
-                       images=images_url)
+                       images=images_url, videos=videos_url)
 ***REMOVED***
         print("未找到指定id的script标签")
