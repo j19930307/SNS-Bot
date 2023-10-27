@@ -5,8 +5,9 @@ class Profile:
 
 
 class SnsInfo:
-    def __init__(self, post_link: str, profile: Profile, content: str, images: list):
+    def __init__(self, post_link: str, profile: Profile, content: str, images: list, videos: list = None):
         self.post_link = post_link
         self.profile = profile
         self.content = content
         self.images = images
+        self.videos = videos

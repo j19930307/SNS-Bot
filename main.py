@@ -126,9 +126,12 @@ async def on_message(message):
             bstage_url = re.search(r'(https://h1key-official.com/story/feed/[^?]+)', message.content)
             if bstage_url:
                 print("提取的推文链接:", bstage_url.group(0))
-                await message.channel.send(content=bstage_url.group(0),
-                                           embeds=generate_embeds(bstage_crawler.fetch_data(
-                                               bstage_url.group(0))))
+                sns_info = bstage_crawler.fetch_data(bstage_url.group(0))
+                content_list = [bstage_url.group(0)]
+                if sns_info.videos is not None:
+                    content_list.extend(sns_info.videos)
+                await message.channel.send(content="\n".join(content_list),
+                                           embeds=generate_embeds(sns_info))
                 await loading_message.delete()
             else:
                 print("未找到推文链接")
