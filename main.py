@@ -76,8 +76,10 @@ async def on_message(message):
             tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
             if tweet_url:
                 print("提取的推文链接:", tweet_url.group(0))
-                await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
-                    twitter_graphql_crawler.fetch_data(tweet_url.group(0))))
+                sns_info = twitter_graphql_crawler.fetch_data(tweet_url.group(0))
+                await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(sns_info))
+                if len(sns_info.videos) > 0:
+                    await message.channel.send(content="\n".join(sns_info.videos))
                 await loading_message.delete()
             else:
                 print("未找到推文链接")
