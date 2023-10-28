@@ -109,15 +109,15 @@ def combine_sns_info(post_link: str, response):
     user_image_url = response["data"]["tweetResult"]["result"]["core"]["user_results"]["result"]["legacy"][
         "profile_image_url_https"]
     post_content = response["data"]["tweetResult"]["result"]["legacy"]["full_text"]
-    image_or_video_list = []
+    images = []
+    videos = []
     for media in response["data"]["tweetResult"]["result"]["legacy"]["extended_entities"]["media"]:
+        image_url = media["media_url_https"]
+        images.append(image_url)
         if media["type"] == "video" or media["type"] == "animated_gif":
             # 使用max()函数找出bitrate最大的URL
             video_url = max(media["video_info"]["variants"], key=lambda x: x.get('bitrate', 0))["url"]
-            image_or_video_list.append(video_url)
-        elif media["type"] == "photo":
-            image = media["media_url_https"]
-            image_or_video_list.append(image)
+            videos.append(video_url)
     return SnsInfo(post_link=post_link, profile=Profile(f"{username} (@{userid})", user_image_url),
                    content=post_content,
-                   images=image_or_video_list)
+                   images=images, videos=videos)
