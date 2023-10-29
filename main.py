@@ -79,7 +79,7 @@ async def on_message(message):
         if "close" in message.content:
             await client.close()
         else:
-            username = message.author.name
+            username = message.author.nick
             # 取出 domain
             match = re.search(r'https://(www\.)?([^/]+)', message.content)
             if match:
