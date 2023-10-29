@@ -19,6 +19,13 @@ intents = discord.Intents.all()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+DOMAIN_TWITTER = "twitter.com"
+DOMAIN_X = "x.com"
+DOMAIN_INSTAGRAM = "instagram.com"
+DOMAIN_WEVERSE = "weverse.io"
+DOMAIN_H1KEY = "h1key-official.com"
+DOMAIN_YEEUN = "yeeun.bstage.in"
+
 
 def generate_embeds(sns_info: SnsInfo):
     embeds = []
@@ -70,74 +77,77 @@ async def on_message(message):
     if mentions(message, client.user.id):
         if "close" in message.content:
             await client.close()
-        elif "twitter.com" in message.content:
-            await message.delete()
-            loading_message = await message.channel.send(content="處理中，請稍後...")
-            tweet_url = re.search(r'(https://twitter.com/[^?]+)', message.content)
-            if tweet_url:
-                print("提取的推文链接:", tweet_url.group(0))
-                sns_info = twitter_graphql_crawler.fetch_data(tweet_url.group(0))
-                await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(sns_info))
-                if len(sns_info.videos) > 0:
-                    await message.channel.send(content="\n".join(sns_info.videos))
-                await loading_message.delete()
-            else:
-                print("未找到推文链接")
-                await loading_message.delete()
-        elif "x.com" in message.content:
-            await message.delete()
-            loading_message = await message.channel.send(content="處理中，請稍後...")
-            tweet_url = re.search(r'(https://x.com/[^?]+)', message.content)
-            if tweet_url:
-                print("提取的推文链接:", tweet_url.group(0))
-                await message.channel.send(content=tweet_url.group(0), embeds=generate_embeds(
-                    twitter_graphql_crawler.fetch_data(tweet_url.group(0))))
-                await loading_message.delete()
-            else:
-                print("未找到推文链接")
-                await loading_message.delete()
-        elif "instagram.com" in message.content:
-            await message.delete()
-            loading_message = await message.channel.send(content="處理中，請稍後...")
-            instagram_url = re.search(r'(https://www.instagram.com/[^?]+)', message.content)
-            if instagram_url:
-                print("提取的推文链接:", instagram_url.group(0))
-                await message.channel.send(content=instagram_url.group(0),
-                                           embeds=generate_embeds(instagram_crawler.fetch_data_from_instagram(
-                                               instagram_url.group(0))))
-                await loading_message.delete()
-            else:
-                print("未找到推文链接")
-                await loading_message.delete()
-        elif "weverse.io" in message.content:
-            await message.delete()
-            loading_message = await message.channel.send(content="處理中，請稍後...")
-            weverse_url = re.search(r'(https://weverse.io/[^?]+)', message.content)
-            if weverse_url:
-                print("提取的推文链接:", weverse_url.group(0))
-                await message.channel.send(content=weverse_url.group(0),
-                                           embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
-                                               weverse_url.group(0))))
-                await loading_message.delete()
-            else:
-                print("未找到推文链接")
-                await loading_message.delete()
-        elif "h1key-official.com" in message.content:
-            await message.delete()
-            loading_message = await message.channel.send(content="處理中，請稍後...")
-            bstage_url = re.search(r'(https://h1key-official.com/story/feed/[^?]+)', message.content)
-            if bstage_url:
-                print("提取的推文链接:", bstage_url.group(0))
-                sns_info = bstage_crawler.fetch_data(bstage_url.group(0))
-                content_list = [bstage_url.group(0)]
-                if sns_info.videos is not None:
-                    content_list.extend(sns_info.videos)
-                await message.channel.send(content="\n".join(content_list),
-                                           embeds=generate_embeds(sns_info))
-                await loading_message.delete()
-            else:
-                print("未找到推文链接")
-                await loading_message.delete()
+        else:
+            # 取出 domain
+            match = re.search(r'https://(www\.)?([^/]+)', message.content)
+            if match:
+                domain = match.group(2)
+                if domain == DOMAIN_TWITTER or domain == DOMAIN_X:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    pattern = r'(https://' + re.escape(domain) + r'/[^?]+)'
+                    match = re.search(pattern, message.content)
+                    if match:
+                        tweet_url = match.group(1)
+                        if tweet_url:
+                            print("提取的推文链接:", tweet_url)
+                            sns_info = twitter_graphql_crawler.fetch_data(tweet_url)
+                            await message.channel.send(content=tweet_url, embeds=generate_embeds(sns_info))
+                            if len(sns_info.videos) > 0:
+                                await message.channel.send(content="\n".join(sns_info.videos))
+                            await loading_message.delete()
+                        else:
+                            print("未找到推文链接")
+                            await loading_message.delete()
+                elif domain == DOMAIN_INSTAGRAM:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    instagram_url = re.search(r'(https://www.instagram.com/[^?]+)', message.content)
+                    if instagram_url:
+                        print("提取的推文链接:", instagram_url.group(0))
+                        await message.channel.send(content=instagram_url.group(0),
+                                                   embeds=generate_embeds(instagram_crawler.fetch_data_from_instagram(
+                                                       instagram_url.group(0))))
+                        await loading_message.delete()
+                    else:
+                        print("未找到推文链接")
+                        await loading_message.delete()
+                elif domain == DOMAIN_WEVERSE:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    weverse_url = re.search(r'(https://weverse.io/[^?]+)', message.content)
+                    if weverse_url:
+                        print("提取的推文链接:", weverse_url.group(0))
+                        await message.channel.send(content=weverse_url.group(0),
+                                                   embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
+                                                       weverse_url.group(0))))
+                        await loading_message.delete()
+                    else:
+                        print("未找到推文链接")
+                        await loading_message.delete()
+                elif domain == DOMAIN_H1KEY or domain == DOMAIN_YEEUN:
+                    await message.delete()
+                    loading_message = await message.channel.send(content="處理中，請稍後...")
+                    pattern = r'(https://' + re.escape(domain) + r'/story/feed/[^?]+)'
+                    match = re.search(pattern, message.content)
+                    if match:
+                        bstage_url = match.group(1)
+                        if bstage_url:
+                            print("提取的推文链接:", bstage_url)
+                            sns_info = bstage_crawler.fetch_data(bstage_url)
+                            content_list = [bstage_url]
+                            if sns_info.videos is not None:
+                                content_list.extend(sns_info.videos)
+                            await message.channel.send(content="\n".join(content_list),
+                                                       embeds=generate_embeds(sns_info))
+                            await loading_message.delete()
+                        else:
+                            print("未找到推文链接")
+                            await loading_message.delete()
+                    else:
+                        print("无法匹配域名")
+                else:
+                    print("无法提取域名")
 
 
 client.run(BOT_TOKEN)
