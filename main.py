@@ -12,7 +12,7 @@ import weverse_crawler
 from SnsInfo import SnsInfo
 from discord_bot import post_source
 
-BOT_TOKEN = os.environ["BOT_TOKEN"]
+BOT_TOKEN = "MTE2Njg5ODc4ODY0NDk1ODIyOA.GQ6zK6.ZMwAuAara-FbaBl8pb9otc_JLojtVWaExQ0szg"
 
 # client是跟discord連接，intents是要求機器人的權限
 intents = discord.Intents.all()
@@ -27,7 +27,7 @@ DOMAIN_H1KEY = "h1key-official.com"
 DOMAIN_YEEUN = "yeeun.bstage.in"
 
 
-def generate_embeds(sns_info: SnsInfo):
+def generate_embeds(username: str, sns_info: SnsInfo):
     embeds = []
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
     for index, image_url in enumerate(sns_info.images):
@@ -36,7 +36,8 @@ def generate_embeds(sns_info: SnsInfo):
             embed = (
                 Embed(description=sns_info.content, url=sns_info.profile.url).set_author(name=sns_info.profile.name,
                                                                                          icon_url=sns_info.profile.url)
-                .set_image(url=image_url))
+                .set_image(url=image_url)
+                .insert_field_at(index=0, name="使用者", value=username))
             if source is not None:
                 embed.set_footer(text=post_source(sns_info.post_link)[0],
                                  icon_url=post_source(sns_info.post_link)[1])
@@ -78,6 +79,7 @@ async def on_message(message):
         if "close" in message.content:
             await client.close()
         else:
+            username = message.author.name
             # 取出 domain
             match = re.search(r'https://(www\.)?([^/]+)', message.content)
             if match:
@@ -92,7 +94,7 @@ async def on_message(message):
                         if tweet_url:
                             print("提取的推文链接:", tweet_url)
                             sns_info = twitter_graphql_crawler.fetch_data(tweet_url)
-                            await message.channel.send(content=tweet_url, embeds=generate_embeds(sns_info))
+                            await message.channel.send(content=tweet_url, embeds=generate_embeds(username, sns_info))
                             if len(sns_info.videos) > 0:
                                 await message.channel.send(content="\n".join(sns_info.videos))
                             await loading_message.delete()
@@ -106,8 +108,9 @@ async def on_message(message):
                     if instagram_url:
                         print("提取的推文链接:", instagram_url.group(0))
                         await message.channel.send(content=instagram_url.group(0),
-                                                   embeds=generate_embeds(instagram_crawler.fetch_data_from_instagram(
-                                                       instagram_url.group(0))))
+                                                   embeds=generate_embeds(username,
+                                                                          instagram_crawler.fetch_data_from_instagram(
+                                                                              instagram_url.group(0))))
                         await loading_message.delete()
                     else:
                         print("未找到推文链接")
@@ -119,8 +122,9 @@ async def on_message(message):
                     if weverse_url:
                         print("提取的推文链接:", weverse_url.group(0))
                         await message.channel.send(content=weverse_url.group(0),
-                                                   embeds=generate_embeds(weverse_crawler.fetch_data_from_weverse(
-                                                       weverse_url.group(0))))
+                                                   embeds=generate_embeds(username,
+                                                                          weverse_crawler.fetch_data_from_weverse(
+                                                                              weverse_url.group(0))))
                         await loading_message.delete()
                     else:
                         print("未找到推文链接")
@@ -139,7 +143,7 @@ async def on_message(message):
                             if sns_info.videos is not None:
                                 content_list.extend(sns_info.videos)
                             await message.channel.send(content="\n".join(content_list),
-                                                       embeds=generate_embeds(sns_info))
+                                                       embeds=generate_embeds(username, sns_info))
                             await loading_message.delete()
                         else:
                             print("未找到推文链接")
