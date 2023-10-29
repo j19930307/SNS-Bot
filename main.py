@@ -12,7 +12,7 @@ import weverse_crawler
 from SnsInfo import SnsInfo
 from discord_bot import post_source
 
-BOT_TOKEN = "MTE2Njg5ODc4ODY0NDk1ODIyOA.GQ6zK6.ZMwAuAara-FbaBl8pb9otc_JLojtVWaExQ0szg"
+BOT_TOKEN = os.environ["BOT_TOKEN"]
 
 # client是跟discord連接，intents是要求機器人的權限
 intents = discord.Intents.all()
