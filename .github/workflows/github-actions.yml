@@ -32,5 +32,8 @@ jobs:
     - name: run Python script
       env:
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+        INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
+        INSTAGRAM_SECRET: ${{ secrets.INSTAGRAM_SECRET }}
       run:
         python main.py
