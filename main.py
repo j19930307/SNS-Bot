@@ -33,7 +33,7 @@ cl = Client()
 def generate_embeds(username: str, sns_info: SnsInfo):
     embeds = []
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
-    for index, image_url in enumerate(sns_info.images):
+    for index, image_url in enumerate(sns_info.images[slice(4)]):
         if index == 0:
             source = post_source(sns_info.post_link)
             embed = (
