@@ -19,7 +19,7 @@ def fetch_data(url: str):
     driver.implicitly_wait(10)
     driver.get(url)
 
-    driver.find_element(By.ID, "__NEXT_DATA__")
+    driver.find_element(By.CSS_SELECTOR, 'script#__NEXT_DATA__')
 
     html = driver.page_source
 
