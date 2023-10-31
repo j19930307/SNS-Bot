@@ -2,11 +2,12 @@ import os
 import re
 
 import discord
+import pyotp
 from discord import message, Embed
+from instagrapi import Client
 
 import bstage_crawler
 import instagram_crawler
-import twitter_crawler
 import twitter_graphql_crawler
 import weverse_crawler
 from SnsInfo import SnsInfo
@@ -25,6 +26,8 @@ DOMAIN_INSTAGRAM = "instagram.com"
 DOMAIN_WEVERSE = "weverse.io"
 DOMAIN_H1KEY = "h1key-official.com"
 DOMAIN_YEEUN = "yeeun.bstage.in"
+
+cl = Client()
 
 
 def generate_embeds(username: str, sns_info: SnsInfo):
@@ -60,11 +63,21 @@ def mentions(message: message, id: int):
     return False
 
 
+def instagram_login():
+    insta_username = os.environ["INSTAGRAM_USERNAME"]
+    insta_password = os.environ["INSTAGRAM_PASSWORD"]
+    secret = os.environ["INSTAGRAM_SECRET"].replace(" ", "")
+    totp = pyotp.TOTP(secret)
+    verification_code = totp.now()
+    return cl.login(username=insta_username, password=insta_password, verification_code=verification_code)
+
+
 # 調用event函式庫
 @client.event
 # 當機器人完成啟動
 async def on_ready():
     print(f"目前登入身份 --> {client.user}")
+    instagram_login()
 
 
 @client.event
@@ -110,7 +123,7 @@ async def on_message(message):
                         await message.channel.send(content=instagram_url.group(0),
                                                    embeds=generate_embeds(username,
                                                                           instagram_crawler.fetch_data_from_instagram(
-                                                                              instagram_url.group(0))))
+                                                                              cl, instagram_url.group(0))))
                         await loading_message.delete()
                     else:
                         print("未找到推文链接")
