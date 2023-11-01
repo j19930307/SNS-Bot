@@ -1,12 +1,10 @@
 import json
-from time import sleep
 
-from selenium import webdriver
-from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 
-from discord_bot ***REMOVED***_webhook
 from SnsInfo import SnsInfo, Profile
 
 

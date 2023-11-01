@@ -1,15 +1,12 @@
-from time import sleep
-
-from selenium import webdriver
-from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 
-from discord_bot ***REMOVED***_webhook
 from SnsInfo import SnsInfo, Profile
 
 
-def fetch_data_from_weverse(url: str):
+def fetch_data(url: str):
     options = ChromeOptions()
     options.add_argument("--start-maximized")
     options.add_argument('--headless')
@@ -36,17 +33,6 @@ def fetch_data_from_weverse(url: str):
     img_tag = soup.find('img', class_='PostPreviewVideoThumbnailView_thumbnail__dj7KA')
     if img_tag:
         image_links.append(img_tag['src'])
-***REMOVED***
-        print("Video Thumbnail URL not found in the HTML.")
 
     return SnsInfo(post_link=url, profile=Profile(name=profile_name, url=profile_image),
                    content=content, images=image_links)
-
-
-def get_discord_webhook(url: str):
-    if "lightsum" in url:
-***REMOVED*** discord_webhook("LIGHTSUM")
-    elif "stayc" in url:
-***REMOVED*** discord_webhook("STAYC")
-    elif "_EL7ZUPofficial" in url:
-***REMOVED*** discord_webhook("EL7Z UP")

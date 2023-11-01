@@ -3,7 +3,7 @@ from instagrapi import Client
 from SnsInfo import SnsInfo, Profile
 
 
-def fetch_data_from_instagram(cl: Client, url: str):
+def fetch_data(cl: Client, url: str):
     media_pk = cl.media_pk_from_url(url)
     post_info = cl.media_info(media_pk)
 

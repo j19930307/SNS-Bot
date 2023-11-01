@@ -1,23 +1,21 @@
 ***REMOVED***
-from time import sleep
 
-from selenium import webdriver
-from selenium.webdriver import ChromeOptions, Keys
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 
 from SnsInfo import SnsInfo, Profile
-from discord_bot ***REMOVED***_webhook
 
 
-def fetch_data_from_tweet(tweet_url: str):
+def fetch_data(url: str):
     options = ChromeOptions()
     options.add_argument("--start-maximized")
     options.add_argument('--headless')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
     driver.implicitly_wait(10)
-    driver.get(tweet_url)
+    driver.get(url)
 
     driver.find_element(By.CLASS_NAME, "css-9pa8cd")
 
@@ -61,7 +59,7 @@ def fetch_data_from_tweet(tweet_url: str):
     # 取得 twitter id
     pattern = r'https://twitter\.com/(\w+)/status/\d+'
     # 使用re.search来查找匹配
-    match = re.search(pattern, tweet_url)
+    match = re.search(pattern, url)
 ***REMOVED***
         twitter_id = match.group(1)
 ***REMOVED***
@@ -76,25 +74,5 @@ def fetch_data_from_tweet(tweet_url: str):
 ***REMOVED***
         print("Div with specified class not found in the HTML.")
 
-    return SnsInfo(post_link=tweet_url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
+    return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
                    content=description["content"], images=images)
-
-
-def get_discord_webhook(tweet_url: str):
-    if "CUBE_LIGHTSUM" in tweet_url:
-***REMOVED*** discord_webhook("LIGHTSUM")
-    elif "STAYC_official" in tweet_url or "STAYC_talk" in tweet_url:
-***REMOVED*** discord_webhook("STAYC")
-    elif "_EL7ZUPofficial" in tweet_url:
-***REMOVED*** discord_webhook("EL7Z UP")
-
-
-def get_profile_from_tweet(tweet_url: str):
-    if "CUBE_LIGHTSUM" in tweet_url:
-***REMOVED*** "LIGHTSUM·라잇썸 (@CUBE_LIGHTSUM)", "https://pbs.twimg.com/profile_images/1704148378870026240/3gLE-6ta_400x400.jpg"
-    elif "STAYC_official" in tweet_url:
-***REMOVED*** "STAYC(스테이씨) (@STAYC_official)", "https://pbs.twimg.com/profile_images/1683115325875949569/XLbXmPdE_400x400.jpg"
-    elif "STAYC_talk" in tweet_url:
-***REMOVED*** "STAYC (@STAYC_talk)", "https://pbs.twimg.com/profile_images/1655501267630981121/P9xprmtw_400x400.jpg"
-    elif "_EL7ZUPofficial" in tweet_url:
-***REMOVED*** "EL7Z UP OFFICIAL (_EL7ZUPofficial)", "https://pbs.twimg.com/profile_images/1691461887291162624/dtlS3dKA_400x400.jpg"
