@@ -9,8 +9,8 @@ import bstage_crawler
 import instagram_crawler
 import twitter_graphql_crawler
 import weverse_crawler
-from discord_bot import mentions, generate_embeds, DOMAIN_WEVERSE, DOMAIN_INSTAGRAM, DOMAIN_TWITTER, DOMAIN_X, \
-    DOMAIN_H1KEY, DOMAIN_YEEUN
+from discord_bot import (mentions, generate_embeds, DOMAIN_WEVERSE, DOMAIN_INSTAGRAM, DOMAIN_TWITTER, DOMAIN_X,
+                         DOMAIN_BSTAGE)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 
@@ -36,7 +36,8 @@ def instagram_login():
 # 當機器人完成啟動
 async def on_ready():
     print(f"目前登入身份 --> {client.user}")
-    instagram_login()
+    # Instagram 登入有問題
+    # instagram_login()
 
 
 @client.event
@@ -80,16 +81,16 @@ async def on_message(message):
                 elif domain == DOMAIN_INSTAGRAM:
                     match = re.search(r'(https://www.instagram.com/[^?]+)', message.content)
                     if match:
-                        instgram_url = match.group(0)
+                        instagram_url = match.group(0)
                         await message.delete()
                         loading_message = await message.channel.send(content="處理中，請稍後...")
-                        if instgram_url:
-                            print("提取的推文連結:", instgram_url)
+                        if instagram_url:
+                            print("提取的推文連結:", instagram_url)
                             try:
-                                await message.channel.send(content=instgram_url,
+                                await message.channel.send(content=instagram_url,
                                                            embeds=generate_embeds(username,
                                                                                   instagram_crawler.fetch_data(cl,
-                                                                                                               instgram_url)))
+                                                                                                               instagram_url)))
                                 await loading_message.delete()
                             except:
                                 await loading_message.delete()
@@ -115,8 +116,8 @@ async def on_message(message):
                         else:
                             print("未找到推文連結")
                             await loading_message.delete()
-                elif domain == DOMAIN_H1KEY or domain == DOMAIN_YEEUN:
-                    pattern = r'(https://' + re.escape(domain) + r'/story/feed/[^?]+)'
+                elif domain in DOMAIN_BSTAGE:
+                    pattern = r'(https://' + re.escape(domain) + r'/(story/feed/[^?]+|contents/[^?]+))'
                     match = re.search(pattern, message.content)
                     if match:
                         bstage_url = match.group(1)
