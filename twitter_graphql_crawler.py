@@ -88,6 +88,7 @@ def fetch_data(url: str):
 
     if data["method"] == "GET":
         response = session.get(data["url"], headers=headers, params=parameters).json()
+        print(response)
 ***REMOVED*** combine_sns_info(url, response)
     # elif data["method"] == "POST":
     #     response = session.post(data["url"], headers=headers, json=parameters).json()
