@@ -20,7 +20,6 @@ def fetch_data(url: str):
     driver.find_element(By.CSS_SELECTOR, 'script#__NEXT_DATA__')
 
     html = driver.page_source
-
     soup = BeautifulSoup(html, 'lxml')
 
     # 找到指定id的script标签
@@ -30,19 +29,39 @@ def fetch_data(url: str):
         script_content = script_tag.string
         # 将文本内容解析为JSON
         data = json.loads(script_content)
-        # 现在您可以访问JSON数据中的字段
-        content = data["props"]["pageProps"]["post"]["body"]
-        poster_name = data["props"]["pageProps"]["post"]["author"]["nickname"]
-        poster_image_url = data["props"]["pageProps"]["post"]["author"]["avatarImgPath"]
-        images_url = []
-        videos_url = []
-        try:
-            images_url.extend(data["props"]["pageProps"]["post"]["images"])
-        except KeyError:
-            print("找不到圖片")
-            images_url.extend(data["props"]["pageProps"]["post"]["video"]["thumbnailPaths"])
-            videos_url.append(data["props"]["pageProps"]["post"]["video"]["hlsPath"])
-***REMOVED*** SnsInfo(post_link=url, profile=Profile(name=poster_name, url=poster_image_url), content=content,
-                       images=images_url, videos=videos_url)
-***REMOVED***
-        print("未找到指定id的script标签")
+        post = data["props"]["pageProps"].get("post")
+        contents = data["props"]["pageProps"].get("contents")
+        if post is not None:
+            # 现在您可以访问JSON数据中的字段
+            content = post["body"]
+            poster_name = post["author"]["nickname"]
+            poster_image_url = post["author"]["avatarImgPath"]
+            images_url = []
+            videos_url = []
+            try:
+                images_url.extend(post["images"])
+            except KeyError:
+                print("找不到圖片")
+                images_url.extend(post["video"]["thumbnailPaths"])
+                videos_url.append(post["video"]["hlsPath"])
+    ***REMOVED*** SnsInfo(post_link=url, profile=Profile(name=poster_name, url=poster_image_url), content=content,
+                           images=images_url, videos=videos_url)
+        elif contents is not None:
+            # 標題
+            title = contents["title"]
+            # 內文 and 圖
+            encoded_body = contents["body"]
+            images_url = []
+            videos_url = []
+            soup = BeautifulSoup(encoded_body, 'lxml')
+            image_tag = soup.findAll('img')
+            if image_tag:
+                for tag in image_tag:
+                    images_url.append(tag.get('src'))
+            # 內文
+            content = soup.find_all('p', style="text-align:center;")[0].text.strip()
+            # 沒有發文者資訊，用 id 代替
+            author = data["props"]["pageProps"]["space"]["id"]
+            author_image = data["props"]["pageProps"]["space"]["faviconImgPath"]
+    ***REMOVED*** SnsInfo(post_link=url, profile=Profile(name=author, url=author_image), content=content,
+                           images=images_url, videos=videos_url, title=title)

@@ -12,7 +12,7 @@ def fetch_data(url: str):
     options.add_argument('--headless')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(15)
     driver.get(url)
 
     driver.find_element(By.CLASS_NAME, "WeverseViewer")
