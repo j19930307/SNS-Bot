@@ -73,7 +73,11 @@ async def on_message(message):
                                 if len(sns_info.videos) > 0:
                                     await message.channel.send(content="\n".join(sns_info.videos))
                                 await loading_message.delete()
-                            except:
+                            except Exception as e:
+                                if hasattr(e, 'message'):
+                                    print(e.message)
+                                else:
+                                    print(e)
                                 await loading_message.delete()
                         else:
                             print("未找到推文連結")
