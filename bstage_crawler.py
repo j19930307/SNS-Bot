@@ -59,7 +59,7 @@ def fetch_data(url: str):
                 for tag in image_tag:
                     images_url.append(tag.get('src'))
             # 內文
-            content = soup.find_all('p', style="text-align:center;")[0].text.strip()
+            content = "\n".join(["\n" if p.text == "\xa0" else p.text for p in soup.findAll("p")])
             # 沒有發文者資訊，用 id 代替
             author = data["props"]["pageProps"]["space"]["id"]
             author_image = data["props"]["pageProps"]["space"]["faviconImgPath"]
