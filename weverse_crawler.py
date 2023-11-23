@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
@@ -33,6 +35,8 @@ def fetch_data(url: str):
     img_tag = soup.find('img', class_='PostPreviewVideoThumbnailView_thumbnail__dj7KA')
     if img_tag:
         image_links.append(img_tag['src'])
+
+    image_links = [urlparse(link)._replace(query='').geturl() for link in image_links]
 
     return SnsInfo(post_link=url, profile=Profile(name=profile_name, url=profile_image),
                    content=content, images=image_links)
