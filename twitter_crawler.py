@@ -45,10 +45,10 @@ def fetch_data(url: str):
     profile_image = ""
 
     # 取得 twitter 名稱
-    div_tag = soup.find('div', class_='css-1dbjc4n r-zl2h9q')
+    div_tag = soup.find('div', class_='css-175oi2r r-zl2h9q')
     # 在这个div标签中找到包含文本的<span>标签并获取其文本内容
     if div_tag:
-        span_tag = div_tag.find('span', class_='css-901oao css-16my406 r-poiln3 r-bcqeeo r-qvutc0')
+        span_tag = div_tag.find('span', class_='css-1qaijid r-bcqeeo r-qvutc0 r-poiln3')
         if span_tag:
             profile_name = span_tag.text
     ***REMOVED***
@@ -66,7 +66,7 @@ def fetch_data(url: str):
         print("Twitter username not found in the URL.")
 
     # 取得 twitter 頭像
-    div_tag = soup.find('div', class_='css-1dbjc4n')
+    div_tag = soup.find('div', class_='css-175oi2r r-1adg3ll r-1pi2tsx r-13qz1uu r-u8s1d r-1wyvozj r-1v2oles r-desppf r-bztko3')
 
     if div_tag:
         # 在该<div>元素中找到图片URL
@@ -76,3 +76,5 @@ def fetch_data(url: str):
 
     return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
                    content=description["content"], images=images)
+
+fetch_data("https://twitter.com/fromm_store/status/1743920407063740506")
