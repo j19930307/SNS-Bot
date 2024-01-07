@@ -7,6 +7,7 @@ from instagrapi import Client
 
 import bstage_crawler
 import instagram_crawler
+import twitter_crawler
 import twitter_graphql_crawler
 import weverse_crawler
 from discord_bot import (mentions, generate_embeds, DOMAIN_WEVERSE, DOMAIN_INSTAGRAM, DOMAIN_TWITTER, DOMAIN_X,
@@ -78,6 +79,9 @@ async def on_message(message):
                                     print(e.message)
                                 else:
                                     print(e)
+                                sns_info = twitter_crawler.fetch_data(tweet_url)
+                                await message.channel.send(content=tweet_url,
+                                                           embeds=generate_embeds(username, sns_info))
                                 await loading_message.delete()
                         else:
                             print("未找到推文連結")

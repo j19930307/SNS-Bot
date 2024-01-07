@@ -76,5 +76,3 @@ def fetch_data(url: str):
 
     return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
                    content=description["content"], images=images)
-
-fetch_data("https://twitter.com/fromm_store/status/1743920407063740506")
