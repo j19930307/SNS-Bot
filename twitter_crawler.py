@@ -24,7 +24,13 @@ def fetch_data(url: str):
     end = html.index("</html>") + 7
     # print(html[start:end])
     soup = BeautifulSoup(html[start:end], 'lxml')
-    description = soup.find("meta", property="og:title")
+    og_title_content = soup.find("meta", property="og:title")["content"]
+    # 找到雙引號的索引位置
+    start_quote = og_title_content.find('"')
+    end_quote = og_title_content.rfind('"')
+    # 使用切片取出雙引號內的內容
+    description = og_title_content[start_quote + 1: end_quote]
+
     images = []
     for data in soup.find_all("img", {"class": "css-9pa8cd"}):
         image_url = data["src"]
@@ -75,4 +81,4 @@ def fetch_data(url: str):
         print("Div with specified class not found in the HTML.")
 
     return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
-                   content=description["content"], images=images)
+                   content=description, images=images)
