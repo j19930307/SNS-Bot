@@ -24,7 +24,7 @@ def fetch_data(url: str):
     end = html.index("</html>") + 7
     # print(html[start:end])
     soup = BeautifulSoup(html[start:end], 'lxml')
-    description = soup.find("meta", property="og:description")
+    description = soup.find("meta", property="og:title")
     images = []
     for data in soup.find_all("img", {"class": "css-9pa8cd"}):
         image_url = data["src"]
