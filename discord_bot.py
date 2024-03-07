@@ -28,7 +28,8 @@ def generate_embeds(username: str, sns_info: SnsInfo):
         if index == 0:
             source = post_source(sns_info.post_link)
             embed = (
-                Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link).set_author(
+                Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link,
+                      timestamp=sns_info.timestamp).set_author(
                     name=sns_info.profile.name, icon_url=sns_info.profile.url)
                 .set_image(url=image_url)
                 .insert_field_at(index=0, name="使用者", value=username))
@@ -42,8 +43,8 @@ def generate_embeds(username: str, sns_info: SnsInfo):
                           .set_image(url=image_url))
 ***REMOVED***
         embeds.append(Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link).set_author(
-                    name=sns_info.profile.name, icon_url=sns_info.profile.url)
-                .insert_field_at(index=0, name="使用者", value=username))
+            name=sns_info.profile.name, icon_url=sns_info.profile.url)
+                      .insert_field_at(index=0, name="使用者", value=username))
 
     return embeds
 
