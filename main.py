@@ -2,15 +2,11 @@ import os
 import re
 
 import discord
-import pyotp
-from instagrapi import Client
 
 import bstage_crawler
-import instagram_crawler
 import twitter_crawler
-import twitter_graphql_crawler
 import weverse_crawler
-from discord_bot import (mentions, generate_embeds, DOMAIN_WEVERSE, DOMAIN_INSTAGRAM, DOMAIN_TWITTER, DOMAIN_X,
+from discord_bot import (mentions, generate_embeds, DOMAIN_WEVERSE, DOMAIN_TWITTER, DOMAIN_X,
                          DOMAIN_BSTAGE)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
@@ -20,25 +16,12 @@ intents = discord.Intents.all()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-cl = Client()
-
-
-def instagram_login():
-    insta_username = os.environ["INSTAGRAM_USERNAME"]
-    insta_password = os.environ["INSTAGRAM_PASSWORD"]
-    secret = os.environ["INSTAGRAM_SECRET"].replace(" ", "")
-    totp = pyotp.TOTP(secret)
-    verification_code = totp.now()
-    return cl.login(username=insta_username, password=insta_password, verification_code=verification_code)
-
 
 # 調用event函式庫
 @client.event
 # 當機器人完成啟動
 async def on_ready():
     print(f"目前登入身份 --> {client.user}")
-    # Instagram 登入有問題
-    # instagram_login()
 
 
 @client.event
@@ -67,41 +50,11 @@ async def on_message(message):
                         loading_message = await message.channel.send(content="處理中，請稍後...")
                         if tweet_url:
                             print("提取的推文連結:", tweet_url)
-                            try:
-                                sns_info = twitter_graphql_crawler.fetch_data(tweet_url)
-                                await message.channel.send(content=tweet_url,
-                                                           embeds=generate_embeds(username, sns_info))
-                                if len(sns_info.videos) > 0:
-                                    await message.channel.send(content="\n".join(sns_info.videos))
-                                await loading_message.delete()
-                            except Exception as e:
-                                if hasattr(e, 'message'):
-                                    print(e.message)
-                                else:
-                                    print(e)
-                                sns_info = twitter_crawler.fetch_data(tweet_url)
-                                await message.channel.send(content=tweet_url,
-                                                           embeds=generate_embeds(username, sns_info))
-                                await loading_message.delete()
-                        else:
-                            print("未找到推文連結")
+                            sns_info = twitter_crawler.fetch_data(tweet_url)
+                            await message.channel.send(content=tweet_url, embeds=generate_embeds(username, sns_info))
+                            if len(sns_info.videos) > 0:
+                                await message.channel.send(content="\n".join(sns_info.videos))
                             await loading_message.delete()
-                elif domain == DOMAIN_INSTAGRAM:
-                    match = re.search(r'(https://www.instagram.com/[^?]+)', message.content)
-                    if match:
-                        instagram_url = match.group(0)
-                        await message.delete()
-                        loading_message = await message.channel.send(content="處理中，請稍後...")
-                        if instagram_url:
-                            print("提取的推文連結:", instagram_url)
-                            try:
-                                await message.channel.send(content=instagram_url,
-                                                           embeds=generate_embeds(username,
-                                                                                  instagram_crawler.fetch_data(cl,
-                                                                                                               instagram_url)))
-                                await loading_message.delete()
-                            except:
-                                await loading_message.delete()
                         else:
                             print("未找到推文連結")
                             await loading_message.delete()
