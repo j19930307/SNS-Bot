@@ -31,9 +31,8 @@ def generate_embeds(username: str, sns_info: SnsInfo):
                 Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link,
                       timestamp=sns_info.timestamp).set_author(
                     name=sns_info.profile.name, icon_url=sns_info.profile.url)
-                .set_image(url=image_url))
-            if username != "":
-                embed.insert_field_at(index=0, name="使用者", value=username)
+                .set_image(url=image_url)
+                .insert_field_at(index=0, name="使用者", value=username))
             if source is not None:
                 embed.set_footer(text=post_source(sns_info.post_link)[0],
                                  icon_url=post_source(sns_info.post_link)[1])
