@@ -6,10 +6,11 @@ DOMAIN_TWITTER = "twitter.com"
 DOMAIN_X = "x.com"
 DOMAIN_INSTAGRAM = "instagram.com"
 DOMAIN_WEVERSE = "weverse.io"
-DOMAIN_H1KEY = "h1key-official.com"
+DOMAIN_H1KEY_1 = "h1key-official.com"
+DOMAIN_H1KEY_2 = "h1key.bstage.in"
 DOMAIN_YEEUN = "yeeun.bstage.in"
 DOMAIN_PURPLE_KISS = "purplekiss.co.kr"
-DOMAIN_BSTAGE = [DOMAIN_H1KEY, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS]
+DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS]
 
 
 def post_source(url: str):
