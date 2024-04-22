@@ -18,7 +18,7 @@ def fetch_data(url: str):
         headers = {'user-agent': user_agent}
         if match.group(2) == "story/feed":
             response = requests.get(
-                url=f"https://{domain}/_next/data/Mvb0vi-PA7Tn3acXkiiUv/story/feed/{content_id}.json",
+                url=f"https://{domain}/_next/data/HZP_I8FxxAHc5XDHH3dgs/ko/story/feed/{content_id}.json",
                 headers=headers)
             data = json.loads(response.text)
             page_props = data["pageProps"]

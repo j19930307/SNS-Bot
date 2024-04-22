@@ -10,7 +10,9 @@ DOMAIN_H1KEY_1 = "h1key-official.com"
 DOMAIN_H1KEY_2 = "h1key.bstage.in"
 DOMAIN_YEEUN = "yeeun.bstage.in"
 DOMAIN_PURPLE_KISS = "purplekiss.co.kr"
-DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS]
+DOMAIN_KISS_OF_LIFE_1 = "kissoflife-official.com"
+DOMAIN_KISS_OF_LIFE_2 = "kissoflife.bstage.in"
+DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS, DOMAIN_KISS_OF_LIFE_1, DOMAIN_KISS_OF_LIFE_2]
 
 
 def post_source(url: str):
