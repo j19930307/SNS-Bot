@@ -8,3 +8,7 @@ Pillow==10.2.0
 pyotp==2.9.0
 tweety-ns==1.0.9.7
 fake-useragent==1.4.0
+py-cord==2.5.0
+firebase-admin==6.5.0
+instagrapi==2.1.1
+python-dotenv==1.0.1

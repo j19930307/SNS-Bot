@@ -5,7 +5,7 @@ import json
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
-from SnsInfo import SnsInfo, Profile
+from sns_info import SnsInfo, Profile
 
 
 def fetch_data(url: str):

@@ -1,6 +1,6 @@
 from instagrapi import Client
 
-from SnsInfo import SnsInfo, Profile
+from sns_info import SnsInfo, Profile
 
 
 def fetch_data(cl: Client, url: str):

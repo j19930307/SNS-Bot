@@ -29,8 +29,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v2.0
+      with:
+        envkey_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        envkey_FIREBASE_ADMIN_KEY: ${{ secrets.FIREBASE_ADMIN_KEY }}
+
     - name: run Python script
-      env:
-        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       run:
         python main.py

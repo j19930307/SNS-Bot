@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 
-from SnsInfo import SnsInfo, Profile
+from sns_info import SnsInfo, Profile
 
 
 def fetch_data(url: str):

@@ -10,7 +10,7 @@ from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from tweety import Twitter
 
-from SnsInfo import SnsInfo, Profile
+from sns_info import SnsInfo, Profile
 
 
 def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo:
