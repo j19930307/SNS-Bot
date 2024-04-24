@@ -18,11 +18,11 @@ DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KIS
 
 def post_source(url: str):
     if DOMAIN_TWITTER in url or DOMAIN_X in url:
-***REMOVED*** "X", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/X_icon_2.svg/2048px-X_icon_2.svg.png"
+        return "X", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/X_icon_2.svg/2048px-X_icon_2.svg.png"
     elif DOMAIN_INSTAGRAM in url:
-***REMOVED*** "Instagram", "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/600px-Instagram_icon.png"
+        return "Instagram", "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/600px-Instagram_icon.png"
     elif DOMAIN_WEVERSE in url:
-***REMOVED*** "Weverse", "https://image.winudf.com/v2/image1/Y28uYmVueC53ZXZlcnNlX2ljb25fMTY5NjQwNDE0MF8wMTM/icon.webp?w=140&fakeurl=1&type=.webp"
+        return "Weverse", "https://image.winudf.com/v2/image1/Y28uYmVueC53ZXZlcnNlX2ljb25fMTY5NjQwNDE0MF8wMTM/icon.webp?w=140&fakeurl=1&type=.webp"
 
 
 def generate_embeds(username: str, sns_info: SnsInfo):
@@ -42,11 +42,11 @@ def generate_embeds(username: str, sns_info: SnsInfo):
                 embed.set_footer(text=post_source(sns_info.post_link)[0],
                                  icon_url=post_source(sns_info.post_link)[1])
             embeds.append(embed)
-    ***REMOVED***
+        else:
             embeds.append(Embed(url=sns_info.post_link)
                           .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
                           .set_image(url=image_url))
-***REMOVED***
+    else:
         embeds.append(Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link).set_author(
             name=sns_info.profile.name, icon_url=sns_info.profile.url)
                       .insert_field_at(index=0, name="使用者", value=username))
@@ -56,12 +56,12 @@ def generate_embeds(username: str, sns_info: SnsInfo):
 
 def mentions(message: message, bot_id: int):
     if bot_id in message.raw_mentions:
-***REMOVED*** True
-***REMOVED***
+        return True
+    else:
         for role in message.role_mentions:
             for member in role.members:
                 if member.id == bot_id:
-            ***REMOVED*** True
+                    return True
     return False
 
 

@@ -1,8 +1,8 @@
 import json
-***REMOVED***
+import re
 from datetime import datetime
 
-***REMOVED***quests
+import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from selenium import webdriver
@@ -37,7 +37,7 @@ def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo:
         if videos is not None:
             videos_url = [video["url"] for video in videos]
         created_timestamp_in_seconds = int(tweet_dict["tweet"]["created_timestamp"])
-***REMOVED*** SnsInfo(post_link=f"https://x.com/{screen_name}/status/{tweet_id}",
+        return SnsInfo(post_link=f"https://x.com/{screen_name}/status/{tweet_id}",
                        profile=Profile(name=f"{author_name} (@{screen_name})", url=author_avatar_url),
                        content=tweet_content, images=photos_url, videos=videos_url,
                        timestamp=datetime.fromtimestamp(created_timestamp_in_seconds))
@@ -54,7 +54,7 @@ def fetch_data_from_tweety(url: str):
             # 使用max()函数找出bitrate最大的URL
             video_url = max(media.streams, key=lambda x: x.bitrate).url
             videos.append(video_url)
-    ***REMOVED***
+        else:
             image_url = media.media_url_https + ":orig"
             images.append(image_url)
 
@@ -96,7 +96,7 @@ def fetch_data_from_browser(url: str):
                 # 从原始 URL 中截取子字符串
                 modified_url = image_url[:index + len("?format=jpg")]
                 images.append(modified_url)
-***REMOVED***
+            else:
                 print("无法找到指定的子字符串")
 
     profile_name = ""
@@ -109,18 +109,18 @@ def fetch_data_from_browser(url: str):
         span_tag = div_tag.find('span', class_='css-1qaijid r-bcqeeo r-qvutc0 r-poiln3')
         if span_tag:
             profile_name = span_tag.text
-    ***REMOVED***
+        else:
             print("Twitter handle not found inside the div.")
-***REMOVED***
+    else:
         print("Div with specified class not found in the HTML.")
 
     # 取得 twitter id
     pattern = r'https://twitter\.com/(\w+)/status/\d+'
     # 使用re.search来查找匹配
     match = re.search(pattern, url)
-***REMOVED***
+    if match:
         twitter_id = match.group(1)
-***REMOVED***
+    else:
         print("Twitter username not found in the URL.")
 
     # 取得 twitter 頭像
@@ -129,7 +129,7 @@ def fetch_data_from_browser(url: str):
 
     if div_tag:
         profile_image = div_tag.find('img', class_='css-9pa8cd')['src']
-***REMOVED***
+    else:
         print("Div with specified class not found in the HTML.")
 
     return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
@@ -139,18 +139,18 @@ def fetch_data_from_browser(url: str):
 def fetch_data(url: str):
     match = re.match("https://(twitter|x).com/(.+)/status/(\\d+)", url)
     if not match:
-***REMOVED*** None
+        return None
 
     screen_name = match.group(2)
     tweet_id = match.group(3)
 
     sns_info = fetch_data_from_fixtwitter(screen_name, tweet_id)
     if sns_info is not None:
-***REMOVED*** sns_info
+        return sns_info
 
     sns_info = fetch_data_from_tweety(url)
     if sns_info is not None:
-***REMOVED*** sns_info
+        return sns_info
 
     sns_info = fetch_data_from_browser(url)
     return sns_info

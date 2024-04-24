@@ -15,9 +15,9 @@ def fetch_data(cl: Client, url: str):
 
     media_type = post_info.media_type
     if media_type == 1:  # single photo https://www.instagram.com/p/CwDaXh-vnUY
-***REMOVED*** SnsInfo(post_link=url, profile=profile, content=caption_text, images=[post_info.thumbnail_url])
+        return SnsInfo(post_link=url, profile=profile, content=caption_text, images=[post_info.thumbnail_url])
     elif media_type == 2:  # single video https://www.instagram.com/reel/CzA_bJpyL7M
-***REMOVED*** SnsInfo(post_link=url, profile=profile, content=caption_text, images=[post_info.thumbnail_url],
+        return SnsInfo(post_link=url, profile=profile, content=caption_text, images=[post_info.thumbnail_url],
                        videos=[post_info.video_url])
     elif media_type == 8:  # album (include photos or videos) https://www.instagram.com/p/Cxnbj7sS1Ns
         images = []
@@ -28,4 +28,4 @@ def fetch_data(cl: Client, url: str):
             elif resource.media_type == 2:
                 images.append(resource.thumbnail_url)
                 videos.append(resource.video_url)
-***REMOVED*** SnsInfo(post_link=url, profile=profile, content=caption_text, images=images, videos=videos)
+        return SnsInfo(post_link=url, profile=profile, content=caption_text, images=images, videos=videos)

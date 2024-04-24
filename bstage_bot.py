@@ -1,18 +1,18 @@
 import json
-***REMOVED***
+import os
 import random
 import time
 
-***REMOVED***
-***REMOVED***quests
+import discord
+import requests
 from dateutil import parser
-***REMOVED***
+from dotenv import load_dotenv
 from fake_useragent import UserAgent
 
-***REMOVED***_bot
-***REMOVED***
+import discord_bot
+from firebase import Firebase
 from sns_info import SnsInfo, Profile
-***REMOVED***
+from sns_type import SnsType
 
 ua = UserAgent()
 user_agent = ua.random
@@ -63,7 +63,7 @@ class BstageBot:
                         timestamp=published_at_datetime)
                     print(sns_info)
                     sns_info_list.append(sns_info)
-***REMOVED***
+                else:
                     break
 
             post_count = len(sns_info_list)
@@ -79,20 +79,20 @@ class BstageBot:
                 updated_at = max([sns_info.timestamp for sns_info in sns_info_list])
                 print(f"更新最後發文時間: {updated_at}")
                 self.__firestore.set_updated_at(SnsType.BSTAGE, artist, updated_at)
-***REMOVED***
+            else:
                 print("無新發文")
             print("抓取結束")
 
 
-***REMOVED***
+load_dotenv()
 
-***REMOVED***
+bot = discord.Bot()
 
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user.name} ({bot.user.id})')
+    print('Bot is ready to receive commands')
     bstage_bot = BstageBot(bot, Firebase())
     await bstage_bot.execute()
 

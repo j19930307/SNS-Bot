@@ -1,7 +1,7 @@
 import json
-***REMOVED***
+import re
 
-***REMOVED***quests
+import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
@@ -35,7 +35,7 @@ def fetch_data(url: str):
                     print("找不到圖片")
                     images_url.extend(post["video"]["thumbnailPaths"])
                     videos_url.append(post["video"]["hlsPath"])
-        ***REMOVED*** SnsInfo(post_link=url, profile=Profile(name=poster_name, url=poster_image_url), content=content,
+                return SnsInfo(post_link=url, profile=Profile(name=poster_name, url=poster_image_url), content=content,
                                images=images_url, videos=videos_url)
         elif match.group(2) == "contents":
             response = requests.get(
@@ -60,7 +60,7 @@ def fetch_data(url: str):
             # 沒有發文者資訊，用 id 代替
             author = page_props["space"]["id"]
             author_image = page_props["space"]["faviconImgPath"]
-    ***REMOVED*** SnsInfo(post_link=url, profile=Profile(name=author, url=author_image), content=content,
+            return SnsInfo(post_link=url, profile=Profile(name=author, url=author_image), content=content,
                            images=images_url, videos=videos_url, title=title)
     except IndexError:
         print("網址錯誤")

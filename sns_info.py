@@ -19,4 +19,4 @@ class SnsInfo:
         self.timestamp = timestamp
 
     def __str__(self):
-***REMOVED*** f"link: {self.post_link}\nprofile: {self.profile.name} {self.profile.url}\ncontent: {self.content}\nimages: {self.images}\nvideos: {self.videos}\ntimestamp: {self.timestamp}"
+        return f"link: {self.post_link}\nprofile: {self.profile.name} {self.profile.url}\ncontent: {self.content}\nimages: {self.images}\nvideos: {self.videos}\ntimestamp: {self.timestamp}"

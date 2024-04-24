@@ -1,10 +1,10 @@
 import logging
-***REMOVED***
-***REMOVED***
+import os
+import re
 from datetime import datetime
 
 import pyotp
-***REMOVED***
+from dotenv import load_dotenv
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
 
@@ -13,7 +13,7 @@ logger = logging.getLogger()
 
 class Instagram:
     def __init__(self):
-        ***REMOVED***
+        load_dotenv()
         USERNAME = "foeod_adewd"
         PASSWORD = "juniel19930903"
         self.__client = Client()
@@ -41,16 +41,16 @@ class Instagram:
     def get_user_info_from_url(self, url: str):
         pattern = r'instagram\.com/([a-zA-Z0-9_]+)'
         match = re.search(pattern, url)
-    ***REMOVED***
+        if match:
             user_id = match.group(1)
-    ***REMOVED*** self.__client.user_info_by_username_v1(user_id)
+            return self.__client.user_info_by_username_v1(user_id)
 
     def get_user_id(self, username: str):
-***REMOVED*** self.__client.user_id_from_username(username)
+        return self.__client.user_id_from_username(username)
 
     def get_new_posts(self, user_id, updated_at: datetime):
         medias = self.__client.user_medias(user_id, amount=10)
-***REMOVED*** [media for media in medias if media.taken_at > updated_at]
+        return [media for media in medias if media.taken_at > updated_at]
 
 
 # 文章內容 caption_text
