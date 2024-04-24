@@ -151,8 +151,10 @@ async def preview(ctx, link: Option(str, "請輸入連結", required=True, defau
 
 
 @bot.slash_command(description="訂閱 b.stage 帳號通知")
-async def subscribe_bstage(ctx, link: Option(str, "請輸入要訂閱帳號的任一則發文連結", required=True, default='')):
-    await add_bstage_account_to_firestore(ctx, link)
+async def subscribe_bstage(ctx,
+                           account: Option(str, "請輸入要訂閱帳號，例如網址為 https://h1key.bstage.in，帳號則為 h1key",
+                                           required=True, default='')):
+    await add_bstage_account_to_firestore(ctx, account.strip())
 
 
 @bot.listen('on_message')
@@ -178,17 +180,14 @@ async def unsubscribe_bstage(ctx, value: discord.Option(str, "選擇要取消訂
     await remove_bstage_account_from_firestore(ctx, value)
 
 
-async def add_bstage_account_to_firestore(ctx, link):
+async def add_bstage_account_to_firestore(ctx, account: str):
     await ctx.defer()
-    match = re.search(r'https://(.*)\.bstage\.in.*', link)
-    if match:
-        username = match.group(1)
-        if firebase.is_account_exists(SnsType.BSTAGE, username):
-            await ctx.followup.send(f"{username} 已訂閱過")
-        else:
-            firebase.add_account(SnsType.BSTAGE, id=username, username=username, discord_channel_id=ctx.channel.id,
-                                 updated_at=firestore.SERVER_TIMESTAMP)
-            await ctx.followup.send(f"{username} 訂閱成功")
+    if firebase.is_account_exists(SnsType.BSTAGE, account):
+        await ctx.followup.send(f"{account} 已訂閱過")
+    else:
+        firebase.add_account(SnsType.BSTAGE, id=account, username=account, discord_channel_id=str(ctx.channel.id),
+                             updated_at=firestore.SERVER_TIMESTAMP)
+        await ctx.followup.send(f"{account} 訂閱成功")
 
 
 bot.run(BOT_TOKEN)
