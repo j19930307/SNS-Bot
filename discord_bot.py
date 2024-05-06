@@ -23,6 +23,8 @@ def post_source(url: str):
         return "Instagram", "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/600px-Instagram_icon.png"
     elif DOMAIN_WEVERSE in url:
         return "Weverse", "https://image.winudf.com/v2/image1/Y28uYmVueC53ZXZlcnNlX2ljb25fMTY5NjQwNDE0MF8wMTM/icon.webp?w=140&fakeurl=1&type=.webp"
+    elif any(ext in DOMAIN_BSTAGE for ext in url):
+        return "b.stage", "https://pbs.twimg.com/profile_images/1517108749306974208/k7XBFtFh_400x400.jpg"
 
 
 def generate_embeds(username: str, sns_info: SnsInfo):
