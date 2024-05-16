@@ -1,8 +1,9 @@
+import datetime
 import os
 import re
 
 import discord
-from discord import Option, OptionChoice
+from discord import Option, OptionChoice, Embed
 from discord.utils import basic_autocomplete
 from dotenv import load_dotenv
 from google.cloud import firestore
@@ -157,6 +158,11 @@ async def subscribe_bstage(ctx,
     await add_bstage_account_to_firestore(ctx, account.strip())
 
 
+@bot.slash_command(description="時間戳指示符")
+async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/日 時:分:秒)", required=True, default='')):
+    await send_hammertime(ctx, time)
+
+
 @bot.listen('on_message')
 async def on_message(message):
     await read_message(message)
@@ -188,6 +194,37 @@ async def add_bstage_account_to_firestore(ctx, account: str):
         firebase.add_account(SnsType.BSTAGE, id=account, username=account, discord_channel_id=str(ctx.channel.id),
                              updated_at=firestore.SERVER_TIMESTAMP)
         await ctx.followup.send(f"{account} 訂閱成功")
+
+
+# <t:1715925960:d> → 2024/05/17
+# <t:1715925960:f> → 2024年5月17日 14:06
+# <t:1715925960:t> → 14:06
+# <t:1715925960:D> → 2024年5月17日
+# <t:1715925960:F> → 2024年5月17日星期五 14:06
+# <t:1715925960:R> → 1 天內
+# <t:1715925960:T> → 14:06:00
+async def send_hammertime(ctx, input: str):
+    pattern = r'(\d{4})/(\d{1,2})/(\d{1,2}) ?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?'
+    match = re.match(pattern, input)
+    if match:
+        year = int(match.group(1))
+        month = int(match.group(2))
+        day = int(match.group(3))
+        hour = int(match.group(4)) if match.group(4) is not None else 0
+        minute = int(match.group(5)) if match.group(5) is not None else 0
+        second = int(match.group(6)) if match.group(6) is not None else 0
+        try:
+            timestamp = str(int(datetime.datetime(year, month, day, hour, minute, second, 0).timestamp()))
+            embeds = []
+            for pair in [(f"<t:{timestamp}:F>", f"\\<t:{timestamp}:F\\>"),
+                         (f"<t:{timestamp}:f>", f"\\<t:{timestamp}:f\\>"),
+                         (f"<t:{timestamp}:R>", f"\\<t:{timestamp}:R\\>")]:
+                embeds.append(Embed(title=pair[0], description=pair[1]))
+            await ctx.send_response(embeds=embeds, ephemeral=True)
+        except ValueError:
+            await ctx.send_response(content="時間格式錯誤", ephemeral=True)
+    else:
+        await ctx.send_response(content="時間格式錯誤", ephemeral=True)
 
 
 bot.run(BOT_TOKEN)
