@@ -3,6 +3,7 @@ import os
 import re
 
 import discord
+import pytz
 from discord import Option, OptionChoice, Embed
 from discord.utils import basic_autocomplete
 from dotenv import load_dotenv
@@ -214,7 +215,9 @@ async def send_hammertime(ctx, input: str):
         minute = int(match.group(5)) if match.group(5) is not None else 0
         second = int(match.group(6)) if match.group(6) is not None else 0
         try:
-            timestamp = str(int(datetime.datetime(year, month, day, hour, minute, second, 0).timestamp()))
+            tz = pytz.timezone('Asia/Taipei')
+            dt = tz.localize(datetime.datetime(year, month, day, hour, minute, second, 0))
+            timestamp = str(int(dt.timestamp()))
             embeds = []
             for pair in [(f"<t:{timestamp}:F>", f"\\<t:{timestamp}:F\\>"),
                          (f"<t:{timestamp}:f>", f"\\<t:{timestamp}:f\\>"),
