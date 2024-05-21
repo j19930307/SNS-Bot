@@ -13,7 +13,8 @@ DOMAIN_YEEUN = "yeeun.bstage.in"
 DOMAIN_PURPLE_KISS = "purplekiss.co.kr"
 DOMAIN_KISS_OF_LIFE_1 = "kissoflife-official.com"
 DOMAIN_KISS_OF_LIFE_2 = "kissoflife.bstage.in"
-DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS, DOMAIN_KISS_OF_LIFE_1, DOMAIN_KISS_OF_LIFE_2]
+DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS, DOMAIN_KISS_OF_LIFE_1,
+                 DOMAIN_KISS_OF_LIFE_2]
 
 
 def post_source(url: str):
@@ -24,7 +25,7 @@ def post_source(url: str):
     elif DOMAIN_WEVERSE in url:
         return "Weverse", "https://image.winudf.com/v2/image1/Y28uYmVueC53ZXZlcnNlX2ljb25fMTY5NjQwNDE0MF8wMTM/icon.webp?w=140&fakeurl=1&type=.webp"
     elif any(ext in DOMAIN_BSTAGE for ext in url):
-        return "b.stage", "https://pbs.twimg.com/profile_images/1517108749306974208/k7XBFtFh_400x400.jpg"
+        return "b.stage", "https://i.imgur.com/xekJ8pd.png"
 
 
 def generate_embeds(username: str, sns_info: SnsInfo):
@@ -49,9 +50,11 @@ def generate_embeds(username: str, sns_info: SnsInfo):
                           .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
                           .set_image(url=image_url))
     else:
-        embeds.append(Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link).set_author(
+        embed = Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link).set_author(
             name=sns_info.profile.name, icon_url=sns_info.profile.url)
-                      .insert_field_at(index=0, name="使用者", value=username))
+        if username is not None and username != "":
+            embed.insert_field_at(index=0, name="使用者", value=username)
+        embeds.append(embed)
 
     return embeds
 
