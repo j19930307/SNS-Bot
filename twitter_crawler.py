@@ -25,11 +25,13 @@ def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo:
     videos_url = []
 
     if tweet_dict["code"] == 200:
-        author = tweet_dict["tweet"]["author"]
+        tweet = tweet_dict["tweet"]
+        author = tweet["author"]
         author_name = author["name"]
         author_avatar_url = author["avatar_url"]
-        tweet_content = tweet_dict["tweet"]["text"]
-        media = tweet_dict["tweet"].get("media")
+        tweet_content = tweet["text"]
+        created_timestamp_in_seconds = int(tweet["created_timestamp"])
+        media = tweet.get("media")
         if media is not None:
             photos = media.get("photos")
             if photos is not None:
@@ -37,11 +39,10 @@ def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo:
             videos = media.get("videos")
             if videos is not None:
                 videos_url = [video["url"] for video in videos]
-            created_timestamp_in_seconds = int(tweet_dict["tweet"]["created_timestamp"])
-            return SnsInfo(post_link=f"https://x.com/{screen_name}/status/{tweet_id}",
-                           profile=Profile(name=f"{author_name} (@{screen_name})", url=author_avatar_url),
-                           content=tweet_content, images=photos_url, videos=videos_url,
-                           timestamp=datetime.fromtimestamp(created_timestamp_in_seconds))
+        return SnsInfo(post_link=f"https://x.com/{screen_name}/status/{tweet_id}",
+                       profile=Profile(name=f"{author_name} (@{screen_name})", url=author_avatar_url),
+                       content=tweet_content, images=photos_url, videos=videos_url,
+                       timestamp=datetime.fromtimestamp(created_timestamp_in_seconds))
 
 
 def fetch_data_from_tweety(url: str):
