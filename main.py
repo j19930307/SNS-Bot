@@ -13,6 +13,7 @@ import bstage_crawler
 import discord_bot
 import twitter_crawler
 import weverse_crawler
+import youtube_crawler
 from discord_bot import (DOMAIN_WEVERSE, DOMAIN_TWITTER, DOMAIN_X,
                          DOMAIN_BSTAGE)
 from firebase import Firebase
@@ -153,10 +154,42 @@ async def preview(ctx, link: Option(str, "請輸入連結", required=True, defau
 
 
 @bot.slash_command(description="訂閱 b.stage 帳號通知")
-async def subscribe_bstage(ctx,
+async def bstage_subscribe(ctx,
                            account: Option(str, "請輸入要訂閱帳號，例如網址為 https://h1key.bstage.in，帳號則為 h1key",
                                            required=True, default='')):
     await add_bstage_account_to_firestore(ctx, account.strip())
+
+
+async def get_subscribed_list_from_firestore(ctx: discord.AutocompleteContext):
+    tuple_list = firebase.get_subscribed_list_from_discord_id(SnsType.BSTAGE, str(ctx.interaction.channel.id))
+    return [OptionChoice(name=username, value=id) for (username, id) in tuple_list]
+
+
+@bot.slash_command(description="取消訂閱 b.stage 帳號通知")
+async def bstage_unsubscribe(ctx, value: discord.Option(str, "選擇要取消訂閱的帳號",
+                                                        autocomplete=basic_autocomplete(
+                                                            get_subscribed_list_from_firestore))):
+    await remove_account_from_firestore(ctx, SnsType.BSTAGE, value)
+
+
+@bot.slash_command(description="訂閱 YouTube 頻道影片通知")
+async def youtube_subscribe(ctx,
+                            account: Option(str,
+                                            "請輸入要訂閱頻道的帳號代碼。例如網址為 https://www.youtube.com/@STAYC，代碼則為 STAYC",
+                                            required=True, default='')):
+    await add_youtube_handle_to_firebase(ctx, account.strip())
+
+
+async def get_youtube_subscribed_list_from_firestore(ctx: discord.AutocompleteContext):
+    channel_list = firebase.get_youtube_subscribed_list_from_discord_id(str(ctx.interaction.channel.id))
+    return [OptionChoice(name=id, value=id) for id in channel_list]
+
+
+@bot.slash_command(description="取消訂閱 YouTube 頻道影片通知")
+async def youtube_unsubscribe(ctx, value: discord.Option(str, "選擇要取消訂閱頻道的帳號",
+                                                         autocomplete=basic_autocomplete(
+                                                             get_youtube_subscribed_list_from_firestore))):
+    await remove_account_from_firestore(ctx, SnsType.YOUTUBE, value)
 
 
 @bot.slash_command(description="時間戳指示符")
@@ -169,22 +202,10 @@ async def on_message(message):
     await read_message(message)
 
 
-async def get_subscribed_list_from_firestore(ctx: discord.AutocompleteContext):
-    tuple_list = firebase.get_subscribed_list_from_discord_id(SnsType.BSTAGE, ctx.interaction.channel.id)
-    return [OptionChoice(name=username, value=id) for (username, id) in tuple_list]
-
-
-async def remove_bstage_account_from_firestore(ctx, id):
+async def remove_account_from_firestore(ctx, sns_type: SnsType, id):
     await ctx.defer()
-    firebase.delete_account(SnsType.BSTAGE, id)
+    firebase.delete_account(sns_type, id)
     await ctx.followup.send("取消訂閱成功")
-
-
-@bot.slash_command(description="取消訂閱 b.stage 帳號通知")
-async def unsubscribe_bstage(ctx, value: discord.Option(str, "選擇要取消訂閱的帳號",
-                                                        autocomplete=basic_autocomplete(
-                                                            get_subscribed_list_from_firestore))):
-    await remove_bstage_account_from_firestore(ctx, value)
 
 
 async def add_bstage_account_to_firestore(ctx, account: str):
@@ -195,6 +216,20 @@ async def add_bstage_account_to_firestore(ctx, account: str):
         firebase.add_account(SnsType.BSTAGE, id=account, username=account, discord_channel_id=str(ctx.channel.id),
                              updated_at=firestore.SERVER_TIMESTAMP)
         await ctx.followup.send(f"{account} 訂閱成功")
+
+
+async def add_youtube_handle_to_firebase(ctx, handle: str):
+    await ctx.defer()
+    if firebase.is_account_exists(SnsType.YOUTUBE, handle):
+        await ctx.followup.send(f"{handle} 已訂閱過")
+    else:
+        videos_id = youtube_crawler.get_latest_videos(handle)
+        shorts_id = youtube_crawler.get_latest_shorts(handle)
+        latest_video_id = videos_id[0] if len(videos_id) > 0 else ""
+        latest_short_id = shorts_id[0] if len(shorts_id) > 0 else ""
+        firebase.add_youtube_account(handle=handle, discord_channel_id=str(ctx.channel.id),
+                                     latest_video_id=latest_video_id, latest_short_id=latest_short_id)
+        await ctx.followup.send(f"{handle} 訂閱成功")
 
 
 # <t:1715925960:d> → 2024/05/17

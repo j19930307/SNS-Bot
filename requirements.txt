@@ -11,3 +11,6 @@ py-cord==2.5.0
 firebase-admin==6.5.0
 instagrapi==2.1.1
 python-dotenv==1.0.1
+discord==2.3.2
+pytz==2024.1
+python-dateutil==2.9.0.post0

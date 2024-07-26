@@ -61,3 +61,16 @@ class Firebase:
     def get_subscribed_list_from_discord_id(self, type: SnsType, discord_id: str):
         docs = self.__db.collection(type.value).stream()
         return [(doc.get("username"), doc.id) for doc in docs if doc.get("discord_channel_id") == discord_id]
+
+    def add_youtube_account(self, handle: str, discord_channel_id: str, latest_video_id: str, latest_short_id: str):
+        doc_ref = self.__db.collection(SnsType.YOUTUBE.value).document(handle)
+        data = {
+            "discord_channel_id": discord_channel_id,
+            "latest_video_id": latest_video_id,
+            "latest_short_id": latest_short_id
+        }
+        doc_ref.set(data)
+
+    def get_youtube_subscribed_list_from_discord_id(self, discord_id: str):
+        docs = self.__db.collection(SnsType.YOUTUBE.value).stream()
+        return [doc.id for doc in docs if doc.get("discord_channel_id") == discord_id]
