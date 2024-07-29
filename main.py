@@ -223,16 +223,17 @@ async def add_youtube_handle_to_firebase(ctx, handle: str):
     if firebase.is_account_exists(SnsType.YOUTUBE, handle):
         await ctx.followup.send(f"{handle} 已訂閱過")
     else:
+        channel_name = youtube_crawler.get_channel_name(handle)
         videos_id = youtube_crawler.get_latest_videos(handle)
         shorts_id = youtube_crawler.get_latest_shorts(handle)
         streams_id = youtube_crawler.get_latest_streams(handle)
         latest_video_id = videos_id[0] if len(videos_id) > 0 else ""
         latest_short_id = shorts_id[0] if len(shorts_id) > 0 else ""
         latest_stream_id = streams_id[0] if len(streams_id) > 0 else ""
-        firebase.add_youtube_account(handle=handle, discord_channel_id=str(ctx.channel.id),
+        firebase.add_youtube_account(handle=handle, channel_name=channel_name, discord_channel_id=str(ctx.channel.id),
                                      latest_video_id=latest_video_id, latest_short_id=latest_short_id,
                                      latest_stream_id=latest_stream_id)
-        await ctx.followup.send(f"{handle} 訂閱成功")
+        await ctx.followup.send(f"{channel_name} 訂閱成功")
 
 
 # <t:1715925960:d> → 2024/05/17

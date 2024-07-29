@@ -1,8 +1,26 @@
+import os
 import re
 
 import requests
+from dotenv import load_dotenv
 from lxml import html
 import json
+import googleapiclient.discovery
+
+
+def get_channel_name(channel_handle: str):
+    youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=os.environ["YOUTUBE_DATA_API_KEY"])
+    request = youtube.channels().list(
+        part="snippet",
+        forHandle=channel_handle
+    )
+    response = request.execute()
+
+    if response['items']:
+        channel_name = response['items'][0]['snippet']['title']
+        return channel_name
+    else:
+        return None
 
 
 def get_latest_videos(channel_handle: str):
