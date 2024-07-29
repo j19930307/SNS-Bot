@@ -225,10 +225,13 @@ async def add_youtube_handle_to_firebase(ctx, handle: str):
     else:
         videos_id = youtube_crawler.get_latest_videos(handle)
         shorts_id = youtube_crawler.get_latest_shorts(handle)
+        streams_id = youtube_crawler.get_latest_streams(handle)
         latest_video_id = videos_id[0] if len(videos_id) > 0 else ""
         latest_short_id = shorts_id[0] if len(shorts_id) > 0 else ""
+        latest_stream_id = streams_id[0] if len(streams_id) > 0 else ""
         firebase.add_youtube_account(handle=handle, discord_channel_id=str(ctx.channel.id),
-                                     latest_video_id=latest_video_id, latest_short_id=latest_short_id)
+                                     latest_video_id=latest_video_id, latest_short_id=latest_short_id,
+                                     latest_stream_id=latest_stream_id)
         await ctx.followup.send(f"{handle} 訂閱成功")
 
 
