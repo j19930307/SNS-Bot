@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 from sns_info import SnsInfo, Profile
 
@@ -14,10 +16,10 @@ def fetch_data(url: str):
     options.add_argument('--headless')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
-    driver.implicitly_wait(15)
     driver.get(url)
-
-    driver.find_element(By.CLASS_NAME, "WeverseViewer")
+    WebDriverWait(driver, 30, 1).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "WeverseViewer"))
+    )
 
     html = driver.page_source
 
