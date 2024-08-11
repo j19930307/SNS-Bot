@@ -4,12 +4,11 @@ import re
 
 import discord
 import pytz
-from discord import Option, OptionChoice, Embed, EmbedField
+from discord import Option, OptionChoice, Embed
 from discord.utils import basic_autocomplete
 from dotenv import load_dotenv
 from google.cloud import firestore
 
-import Objekts
 import bstage_crawler
 import discord_bot
 import twitter_crawler
@@ -150,14 +149,14 @@ async def on_ready():
 
 
 @bot.slash_command(description="輸入網址產生預覽訊息 (支援網站: X, Weverse, b.stage)")
-async def preview(ctx, link: Option(str, "請輸入連結", required=True)):
+async def preview(ctx, link: Option(str, "請輸入連結", required=True, default='')):
     await sns_preview(ctx, link)
 
 
 @bot.slash_command(description="訂閱 b.stage 帳號通知")
 async def bstage_subscribe(ctx,
                            account: Option(str, "請輸入要訂閱帳號，例如網址為 https://h1key.bstage.in，帳號則為 h1key",
-                                           required=True)):
+                                           required=True, default='')):
     await add_bstage_account_to_firestore(ctx, account.strip())
 
 
@@ -177,7 +176,7 @@ async def bstage_unsubscribe(ctx, value: discord.Option(str, "選擇要取消訂
 async def youtube_subscribe(ctx,
                             account: Option(str,
                                             "請輸入要訂閱頻道的帳號代碼。例如網址為 https://www.youtube.com/@STAYC，代碼則為 STAYC",
-                                            required=True)):
+                                            required=True, default='')):
     await add_youtube_handle_to_firebase(ctx, account.strip())
 
 
@@ -194,16 +193,8 @@ async def youtube_unsubscribe(ctx, value: discord.Option(str, "選擇要取消�
 
 
 @bot.slash_command(description="時間戳指示符")
-async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/日 時:分:秒)", required=True)):
+async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/日 時:分:秒)", required=True, default='')):
     await send_hammertime(ctx, time)
-
-
-@bot.slash_command(description="查詢 Objekt 資訊")
-async def objekt(ctx: discord.ApplicationContext,
-                          season: Option(str, description="請選擇季節", choices=Objekts.seasons),
-                          member: Option(str, description="請選擇成員", choices=Objekts.members),
-                          collection: Option(str, description="請輸入四碼編號(三位數字加一位英文字)", required=True)):
-    await send_objekt_info(ctx, season, member, collection)
 
 
 @bot.listen('on_message')
@@ -278,16 +269,4 @@ async def send_hammertime(ctx, input: str):
         await ctx.send_response(content="時間格式錯誤", ephemeral=True)
 
 
-async def send_objekt_info(ctx, season: str, member: str, collection: str):
-    await ctx.defer(ephemeral=False)
-    objekt = Objekts.get_info(season.lower(), member.lower(), collection.strip().lower())
-    if objekt:
-        copies = EmbedField(name="發行數量", value=str(objekt.copies))
-        description = EmbedField(name="說明", value=objekt.description)
-        embed1 = Embed(url="https://www.google.com", image=objekt.front_image, fields=[copies, description])
-        embed2 = Embed(url="https://www.google.com", image=objekt.back_image)
-        await ctx.followup.send(embeds=[embed1, embed2], ephemeral=False)
-    else:
-        message = await ctx.followup.send("查無資訊")
-        await message.delete(delay=5)
 bot.run(BOT_TOKEN)
