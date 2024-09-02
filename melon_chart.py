@@ -20,9 +20,9 @@ async def top100():
         rank_type = song["RANKTYPE"]
 
         if rank_type == "UP":
-            rank_change = f"(▼{rank_gap})"
-        elif rank_type == "DOWN":
             rank_change = f"(▲{rank_gap})"
+        elif rank_type == "DOWN":
+            rank_change = f"(▼{rank_gap})"
         elif rank_type == "NONE":
             rank_change = "(-)"
         elif rank_type == "NEW":
