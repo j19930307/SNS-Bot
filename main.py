@@ -11,6 +11,7 @@ from google.cloud import firestore
 
 import bstage_crawler
 import discord_bot
+import melon_chart
 import twitter_crawler
 import weverse_crawler
 import youtube_crawler
@@ -195,6 +196,12 @@ async def youtube_unsubscribe(ctx, value: discord.Option(str, "選擇要取消�
 @bot.slash_command(description="時間戳指示符")
 async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/日 時:分:秒)", required=True, default='')):
     await send_hammertime(ctx, time)
+
+@bot.slash_command(description="Melon TOP100")
+async def melon_top100(ctx):
+    await ctx.defer()
+    title, content = await melon_chart.top100()
+    await ctx.followup.send(embed=Embed(title=title, description=content))
 
 
 @bot.listen('on_message')
