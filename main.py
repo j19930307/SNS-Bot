@@ -11,7 +11,7 @@ from google.cloud import firestore
 
 import bstage_crawler
 import discord_bot
-import melon_chart
+from melon_chart import top100, daily
 import twitter_crawler
 import weverse_crawler
 import youtube_crawler
@@ -197,11 +197,21 @@ async def youtube_unsubscribe(ctx, value: discord.Option(str, "選擇要取消�
 async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/日 時:分:秒)", required=True, default='')):
     await send_hammertime(ctx, time)
 
-@bot.slash_command(description="Melon TOP100")
-async def melon_top100(ctx):
+
+chart_type = ["TOP100", "日榜"]
+
+
+@bot.slash_command(description="Melon 榜單")
+async def melon_chart(ctx, option: Option(str, description="請選擇榜單類型", choices=chart_type, required=True)):
     await ctx.defer()
-    title, content = await melon_chart.top100()
-    await ctx.followup.send(embed=Embed(title=title, description=content))
+    if option == "TOP100":
+        title, content = await top100()
+        await ctx.followup.send(embed=Embed(title=title, description=content))
+    elif option == "日榜":
+        title, content = await daily()
+        await ctx.followup.send(embed=Embed(title=title, description=content))
+    else:
+        await ctx.followup.send("請選擇正確的榜單類型")
 
 
 @bot.listen('on_message')

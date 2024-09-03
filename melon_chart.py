@@ -1,23 +1,69 @@
 import json
+import os
+
 import requests
 from fake_useragent import UserAgent
+
+from song import Song, Artist, Genre
 
 
 async def top100():
     ua = UserAgent()
     user_agent = ua.random
     headers = {'user-agent': user_agent}
-
-    url = "https://m2.melon.com/m6/chart/ent/songChartList.json?cpId=AS40&cpKey=14LNC3&appVer=6.5.8.1"
-    response = requests.get(headers=headers, url=url)
-
+    response = requests.get(headers=headers, url=os.environ["MELON_TOP100_CHART_URL"])
     response = json.loads(response.text)["response"]
-    rank_list = []
+    return f"Melon TOP100 {response["RANKDAY"]} {response["RANKHOUR"]}", get_ranking_list_text(response["SONGLIST"])
 
-    for song in response["SONGLIST"]:
-        curr_rank = song["CURRANK"]
-        rank_gap = song["RANKGAP"]
-        rank_type = song["RANKTYPE"]
+
+async def daily():
+    ua = UserAgent()
+    user_agent = ua.random
+    headers = {'user-agent': user_agent}
+    response = requests.get(headers=headers, url=os.environ["MELON_DAILY_CHART_URL"])
+    response = json.loads(response.text)["response"]
+    return f"Melon 日榜", get_ranking_list_text(response["CHARTLIST"])
+
+
+def get_song_info(song):
+    return Song(
+        SONGID=song['SONGID'],
+        SONGNAME=song['SONGNAME'],
+        ALBUMID=song['ALBUMID'],
+        ALBUMNAME=song['ALBUMNAME'],
+        ARTISTLIST=[Artist(**artist) for artist in song['ARTISTLIST']],
+        PLAYTIME=song['PLAYTIME'],
+        GENRELIST=[Genre(**genre) for genre in song['GENRELIST']],
+        CURRANK=song['CURRANK'],
+        PASTRANK=song['PASTRANK'],
+        RANKGAP=song['RANKGAP'],
+        RANKTYPE=song['RANKTYPE'],
+        ISMV=song['ISMV'],
+        ISADULT=song['ISADULT'],
+        ISFREE=song['ISFREE'],
+        ISHITSONG=song['ISHITSONG'],
+        ISHOLDBACK=song['ISHOLDBACK'],
+        ISTITLESONG=song['ISTITLESONG'],
+        ISSERVICE=song['ISSERVICE'],
+        ISTRACKZERO=song['ISTRACKZERO'],
+        ALBUMIMG=song['ALBUMIMG'],
+        ALBUMIMGPATH=song['ALBUMIMGPATH'],
+        ALBUMIMGLARGE=song['ALBUMIMGLARGE'],
+        ALBUMIMGSMALL=song['ALBUMIMGSMALL'],
+        ISSUEDATE=song['ISSUEDATE'],
+        CTYPE=song['CTYPE'],
+        CONTSTYPECODE=song['CONTSTYPECODE']
+    )
+
+
+def get_ranking_list_text(song_list: list[dict]):
+    ranking_list = []
+
+    for song in song_list:
+        info = get_song_info(song)
+        curr_rank = info.CURRANK
+        rank_gap = info.RANKGAP
+        rank_type = info.RANKTYPE
 
         if rank_type == "UP":
             rank_change = f"(▲{rank_gap})"
@@ -30,12 +76,9 @@ async def top100():
         else:
             rank_change = ""
 
-        artist_name = ",".join(artist["ARTISTNAME"] for artist in song["ARTISTLIST"])
-        song_name = song["SONGNAME"]
-
-        curr_rank = curr_rank.rjust(3)
+        artist_name = ",".join(artist.ARTISTNAME for artist in info.ARTISTLIST)
+        curr_rank = str(curr_rank).rjust(3)
         rank_change = rank_change.ljust(6)
+        ranking_list.append(f"{curr_rank} {rank_change} {artist_name} - {info.SONGNAME}")
 
-        rank_list.append(f"{curr_rank} {rank_change} {artist_name} - {song_name}")
-
-    return f"Melon TOP100 {response["RANKDAY"]} {response["RANKHOUR"]}", f"```{'\n'.join(rank_list)}```"
+    return f"```{'\n'.join(ranking_list)}```"
