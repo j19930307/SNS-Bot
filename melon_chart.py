@@ -25,6 +25,24 @@ async def daily():
     return f"Melon 日榜", get_ranking_list_text(response["CHARTLIST"])
 
 
+async def weekly():
+    ua = UserAgent()
+    user_agent = ua.random
+    headers = {'user-agent': user_agent}
+    response = requests.get(headers=headers, url=os.environ["MELON_WEEKLY_CHART_URL"])
+    response = json.loads(response.text)["response"]
+    return f"Melon 周榜", get_ranking_list_text(response["CHARTLIST"])
+
+
+async def monthly():
+    ua = UserAgent()
+    user_agent = ua.random
+    headers = {'user-agent': user_agent}
+    response = requests.get(headers=headers, url=os.environ["MELON_MONTHLY_CHART_URL"])
+    response = json.loads(response.text)["response"]
+    return f"Melon 月榜", get_ranking_list_text(response["CHARTLIST"])
+
+
 def get_song_info(song):
     return Song(
         SONGID=song['SONGID'],

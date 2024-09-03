@@ -11,7 +11,7 @@ from google.cloud import firestore
 
 import bstage_crawler
 import discord_bot
-from melon_chart import top100, daily
+from melon_chart import top100, daily, weekly, monthly
 import twitter_crawler
 import weverse_crawler
 import youtube_crawler
@@ -198,7 +198,7 @@ async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/�
     await send_hammertime(ctx, time)
 
 
-chart_type = ["TOP100", "日榜"]
+chart_type = ["TOP100", "日榜", "周榜", "月榜"]
 
 
 @bot.slash_command(description="Melon 榜單")
@@ -209,6 +209,12 @@ async def melon_chart(ctx, option: Option(str, description="請選擇榜單類�
         await ctx.followup.send(embed=Embed(title=title, description=content))
     elif option == "日榜":
         title, content = await daily()
+        await ctx.followup.send(embed=Embed(title=title, description=content))
+    elif option == "周榜":
+        title, content = await weekly()
+        await ctx.followup.send(embed=Embed(title=title, description=content))
+    elif option == "月榜":
+        title, content = await monthly()
         await ctx.followup.send(embed=Embed(title=title, description=content))
     else:
         await ctx.followup.send("請選擇正確的榜單類型")
