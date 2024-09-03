@@ -36,7 +36,10 @@ jobs:
         envkey_FIREBASE_ADMIN_KEY: ${{ secrets.FIREBASE_ADMIN_KEY }}
         envkey_YOUTUBE_DATA_API_KEY: ${{ secrets.YOUTUBE_DATA_API_KEY }}
         envkey_MELON_TOP100_CHART_URL: ${{ vars.MELON_TOP100_CHART_URL }}
+        envkey_MELON_HOT100_CHART_URL: ${{ vars.MELON_HOT100_CHART_URL }}
         envkey_MELON_DAILY_CHART_URL: ${{ vars.MELON_DAILY_CHART_URL }}
+        envkey_MELON_WEEKLY_CHART_URL: ${{ vars.MELON_WEEKLY_CHART_URL }}
+        envkey_MELON_MONTHLY_CHART_URL: ${{ vars.MELON_MONTHLY_CHART_URL }}
 
     - name: run Python script
       run:
