@@ -15,6 +15,13 @@ async def top100():
     response = json.loads(response.text)["response"]
     return f"Melon TOP100 {response["RANKDAY"]} {response["RANKHOUR"]}", get_ranking_list_text(response["SONGLIST"])
 
+async def hot100():
+    ua = UserAgent()
+    user_agent = ua.random
+    headers = {'user-agent': user_agent}
+    response = requests.get(headers=headers, url=os.environ["MELON_HOT100_CHART_URL"])
+    response = json.loads(response.text)["response"]
+    return f"Melon HOT100 {response["RANKDAY"]} {response["RANKHOUR"]}", get_ranking_list_text(response["SONGLIST"])
 
 async def daily():
     ua = UserAgent()
