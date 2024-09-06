@@ -19,6 +19,7 @@ from discord_bot import (DOMAIN_WEVERSE, DOMAIN_TWITTER, DOMAIN_X,
                          DOMAIN_BSTAGE)
 from firebase import Firebase
 from sns_type import SnsType
+from urllib.parse import urlparse, urlunparse
 
 load_dotenv()
 BOT_TOKEN = os.environ["BOT_TOKEN"]
@@ -221,6 +222,20 @@ async def melon_chart(ctx, option: Option(str, description="請選擇榜單類�
         await ctx.followup.send(embed=Embed(title=title, description=content))
     else:
         await ctx.followup.send("請選擇正確的榜單類型")
+
+
+@bot.slash_command(description="修正 Instagram 預覽")
+async def ddinstagram(ctx, link: Option(str, "請輸入連結", required=True)):
+    if link.startswith("https://www.instagram.com"):
+        parsed_url = urlparse(link)
+        # 修改 netloc 來將 'instagram.com' 替換為 'ddinstagram.com'
+        modified_netloc = parsed_url.netloc.replace("instagram.com", "ddinstagram.com")
+        # 使用已修改的 netloc 並移除 query 參數來重建 URL
+        modified_url = urlunparse(
+            (parsed_url.scheme, modified_netloc, parsed_url.path, parsed_url.params, '', parsed_url.fragment))
+        await ctx.send_response(content=modified_url)
+    else:
+        await ctx.send_response(content="此連結非 Instagram 連結", ephemeral=False)
 
 
 @bot.listen('on_message')
