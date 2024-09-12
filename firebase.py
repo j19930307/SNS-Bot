@@ -63,14 +63,24 @@ class Firebase:
         return [(doc.get("username"), doc.id) for doc in docs if doc.get("discord_channel_id") == discord_id]
 
     def add_youtube_account(self, handle: str, channel_name: str, discord_channel_id: str, latest_video_id: str,
-                            latest_short_id: str, latest_stream_id: str):
+                            latest_video_published_at: datetime, latest_short_id: str, latest_short_published_at: datetime,
+                            latest_stream_id: str, latest_stream_published_at: datetime):
         doc_ref = self.__db.collection(SnsType.YOUTUBE.value).document(handle)
         data = {
             "channel_name": channel_name,
             "discord_channel_id": discord_channel_id,
-            "latest_video_id": latest_video_id,
-            "latest_short_id": latest_short_id,
-            "latest_stream_id": latest_stream_id
+            "latest_video": {
+                "id": latest_video_id,
+                "published_at": latest_video_published_at
+            },
+            "latest_short": {
+                "id": latest_short_id,
+                "published_at": latest_short_published_at
+            },
+            "latest_stream": {
+                "id": latest_stream_id,
+                "published_at": latest_stream_published_at
+            },
         }
         doc_ref.set(data)
 

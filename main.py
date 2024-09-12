@@ -265,15 +265,25 @@ async def add_youtube_handle_to_firebase(ctx, handle: str):
         await ctx.followup.send(f"{handle} 已訂閱過")
     else:
         channel_name = youtube_crawler.get_channel_name(handle)
+        if channel_name is None:
+            await ctx.followup.send("頻道不存在")
+            return
         videos_id = youtube_crawler.get_latest_videos(handle)
         shorts_id = youtube_crawler.get_latest_shorts(handle)
         streams_id = youtube_crawler.get_latest_streams(handle)
         latest_video_id = videos_id[0] if len(videos_id) > 0 else ""
         latest_short_id = shorts_id[0] if len(shorts_id) > 0 else ""
         latest_stream_id = streams_id[0] if len(streams_id) > 0 else ""
+        latest_video_published_at = youtube_crawler.get_video_published_at(video_id=latest_video_id)
+        latest_short_published_at = youtube_crawler.get_video_published_at(video_id=latest_short_id)
+        latest_stream_published_at = youtube_crawler.get_video_published_at(video_id=latest_stream_id)
         firebase.add_youtube_account(handle=handle, channel_name=channel_name, discord_channel_id=str(ctx.channel.id),
-                                     latest_video_id=latest_video_id, latest_short_id=latest_short_id,
-                                     latest_stream_id=latest_stream_id)
+                                     latest_video_id=latest_video_id,
+                                     latest_video_published_at=latest_video_published_at,
+                                     latest_short_id=latest_short_id,
+                                     latest_short_published_at=latest_short_published_at,
+                                     latest_stream_id=latest_stream_id,
+                                     latest_stream_published_at=latest_stream_published_at)
         await ctx.followup.send(f"{channel_name} 訂閱成功")
 
 

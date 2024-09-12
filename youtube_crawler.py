@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 
 import requests
 from dotenv import load_dotenv
@@ -16,7 +17,7 @@ def get_channel_name(channel_handle: str):
     )
     response = request.execute()
 
-    if response['items']:
+    if response.get('items', None):
         channel_name = response['items'][0]['snippet']['title']
         return channel_name
     else:
@@ -67,9 +68,15 @@ def get_latest_shorts(channel_handle: str):
     for content in contents:
         richItemRenderer = content.get('richItemRenderer', None)
         if richItemRenderer is not None:
-            videoRenderer = richItemRenderer['content']['reelItemRenderer']
-            video_id = videoRenderer['videoId']
-            videos_id.append(video_id)
+            reelItemRenderer = richItemRenderer['content'].get('reelItemRenderer', None)
+            shortsLockupViewModel = richItemRenderer['content'].get('shortsLockupViewModel', None)
+            if reelItemRenderer is not None:
+                video_id = reelItemRenderer['videoId']
+                videos_id.append(video_id)
+            elif shortsLockupViewModel is not None:
+                video_id = shortsLockupViewModel['onTap']['innertubeCommand']['reelWatchEndpoint']['videoId']
+                videos_id.append(video_id)
+
     return videos_id
 
 
@@ -101,3 +108,19 @@ def get_latest_streams(channel_handle: str):
                     video_id = videoRenderer['videoId']
                     videos_id.append(video_id)
     return videos_id
+
+
+def get_video_published_at(video_id: str):
+    youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=os.environ["YOUTUBE_DATA_API_KEY"])
+    request = youtube.videos().list(
+        part="snippet",
+        id=video_id
+    )
+    response = request.execute()
+
+    if response['items']:
+        published_at = response['items'][0]['snippet']['publishedAt']
+        # 轉換成 datetime 對象
+        return datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
+    else:
+        return None
