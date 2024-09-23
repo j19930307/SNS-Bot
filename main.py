@@ -11,12 +11,13 @@ from google.cloud import firestore
 
 import bstage_crawler
 import discord_bot
+import instagram_crawler
 from melon_chart import top100, hot100, daily, weekly, monthly
 import twitter_crawler
 import weverse_crawler
 import youtube_crawler
 from discord_bot import (DOMAIN_WEVERSE, DOMAIN_TWITTER, DOMAIN_X,
-                         DOMAIN_BSTAGE)
+                         DOMAIN_BSTAGE, DOMAIN_INSTAGRAM)
 from firebase import Firebase
 from sns_type import SnsType
 from urllib.parse import urlparse, urlunparse
@@ -67,6 +68,19 @@ async def sns_preview(ctx, url):
                     await discord_bot.send_message(ctx, sns_info)
             else:
                 print("未找到推文連結")
+        elif domain in DOMAIN_INSTAGRAM:
+            match = re.search(r'(https://www.instagram.com/(p|reel)/[^?]+)', url)
+            if match:
+                instagram_url = match.group(0)
+                if instagram_url:
+                    print("提取的推文連結:", instagram_url)
+                    await ctx.defer()
+                    sns_info = instagram_crawler.fetch_data_from_graphql(instagram_url)
+                    await discord_bot.send_message(ctx, sns_info)
+                else:
+                    print("未找到推文連結")
+                    await ctx.followup.send("連結格式不符")
+
     else:
         print("無法提取域名")
 
@@ -140,6 +154,25 @@ async def read_message(message):
                 else:
                     print("未找到推文連結")
                     await loading_message.delete()
+        elif domain in DOMAIN_INSTAGRAM:
+            match = re.search(r"https://www.instagram.com/(p|reel)/([^/?]+)", message.content)
+            if match:
+                instagram_url = f"https://www.instagram.com/{match.group(1)}/{match.group(2)}"
+                await message.delete()
+                loading_message = await message.channel.send(content="處理中，請稍後...")
+                if instagram_url:
+                    print("提取的推文連結:", instagram_url)
+                    try:
+                        sns_info = instagram_crawler.fetch_data_from_graphql(instagram_url)
+                        print(sns_info)
+                        await message.channel.send(content=instagram_url,
+                                                   embeds=discord_bot.generate_embeds(username, sns_info))
+                        await loading_message.delete()
+                    except:
+                        await loading_message.delete()
+                else:
+                    print("未找到推文連結")
+                    await loading_message.delete()
         else:
             print("無法提取域名")
 
@@ -150,7 +183,7 @@ async def on_ready():
     print('Bot is ready to receive commands')
 
 
-@bot.slash_command(description="輸入網址產生預覽訊息 (支援網站: X, Weverse, b.stage)")
+@bot.slash_command(description="輸入網址產生預覽訊息 (支援網站: X, Weverse, Instagram)")
 async def preview(ctx, link: Option(str, "請輸入連結", required=True, default='')):
     await sns_preview(ctx, link)
 

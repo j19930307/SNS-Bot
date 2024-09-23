@@ -43,4 +43,4 @@ jobs:
 
     - name: run Python script
       run:
-        python main.py
+        python -u main.py

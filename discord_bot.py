@@ -30,10 +30,10 @@ def post_source(url: str):
 
 def generate_embeds(username: str, sns_info: SnsInfo):
     embeds = []
+    source = post_source(sns_info.post_link)
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
     for index, image_url in enumerate(sns_info.images[slice(4)]):
         if index == 0:
-            source = post_source(sns_info.post_link)
             embed = (
                 Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link,
                       timestamp=sns_info.timestamp).set_author(
@@ -42,18 +42,20 @@ def generate_embeds(username: str, sns_info: SnsInfo):
             if username is not None and username != "":
                 embed.insert_field_at(index=0, name="使用者", value=username)
             if source is not None:
-                embed.set_footer(text=post_source(sns_info.post_link)[0],
-                                 icon_url=post_source(sns_info.post_link)[1])
+                embed.set_footer(text=post_source(sns_info.post_link)[0], icon_url=post_source(sns_info.post_link)[1])
             embeds.append(embed)
         else:
             embeds.append(Embed(url=sns_info.post_link)
                           .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
                           .set_image(url=image_url))
     else:
-        embed = Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link).set_author(
+        embed = Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link,
+                      timestamp=sns_info.timestamp).set_author(
             name=sns_info.profile.name, icon_url=sns_info.profile.url)
         if username is not None and username != "":
             embed.insert_field_at(index=0, name="使用者", value=username)
+        if source is not None:
+            embed.set_footer(text=post_source(sns_info.post_link)[0], icon_url=post_source(sns_info.post_link)[1])
         embeds.append(embed)
 
     return embeds
@@ -72,7 +74,7 @@ def mentions(message: message, bot_id: int):
 
 async def send_message(ctx: Context, sns_info: SnsInfo):
     print(f"訊息內容:\n{sns_info}")
-    await ctx.respond(content=sns_info.post_link, embeds=generate_embeds("", sns_info))
+    await ctx.followup.send(content=sns_info.post_link, embeds=generate_embeds("", sns_info))
     videos = sns_info.videos
     if videos is not None and len(videos) > 0:
-        await ctx.send(content="\n".join(sns_info.videos))
+        await ctx.followup.send(content="\n".join(sns_info.videos))
