@@ -13,7 +13,8 @@ async def top100():
     headers = {'user-agent': user_agent}
     response = requests.get(headers=headers, url=os.environ["MELON_TOP100_CHART_URL"])
     response = json.loads(response.text)["response"]
-    return f"Melon TOP100 {response["RANKDAY"]} {response["RANKHOUR"]}", get_ranking_list_text(response["SONGLIST"])
+    return f"Melon TOP100 {response['RANKDAY']} {response['RANKHOUR']}", get_ranking_list_text(response['SONGLIST'])
+
 
 async def hot100():
     ua = UserAgent()
@@ -21,7 +22,8 @@ async def hot100():
     headers = {'user-agent': user_agent}
     response = requests.get(headers=headers, url=os.environ["MELON_HOT100_CHART_URL"])
     response = json.loads(response.text)["response"]
-    return f"Melon HOT100 {response["RANKDAY"]} {response["RANKHOUR"]}", get_ranking_list_text(response["SONGLIST"])
+    return f"Melon HOT100 {response['RANKDAY']} {response['RANKHOUR']}", get_ranking_list_text(response['SONGLIST'])
+
 
 async def daily():
     ua = UserAgent()
@@ -106,4 +108,4 @@ def get_ranking_list_text(song_list: list[dict]):
         rank_change = rank_change.ljust(6)
         ranking_list.append(f"{curr_rank} {rank_change} {artist_name} - {info.SONGNAME}")
 
-    return f"```{'\n'.join(ranking_list)}```"
+    return "```{}```".format('\n'.join(ranking_list))
