@@ -69,14 +69,18 @@ async def sns_preview(ctx, url):
             else:
                 print("未找到推文連結")
         elif domain in DOMAIN_INSTAGRAM:
-            match = re.search(r'(https://www.instagram.com/(p|reel)/[^?]+)', url)
+            match = re.search(r'(https://www.instagram.com/(p|reel|stories)/[^?]+)', url)
             if match:
                 instagram_url = match.group(0)
                 if instagram_url:
                     print("提取的推文連結:", instagram_url)
                     await ctx.defer()
                     sns_info = instagram_crawler.fetch_data_from_graphql(instagram_url)
-                    await discord_bot.send_message(ctx, sns_info)
+                    if sns_info:
+                        print(sns_info)
+                        await discord_bot.send_message(ctx, sns_info)
+                    else:
+                        await ctx.followup.send(convert_to_ddinstagram_url(instagram_url))
                 else:
                     print("未找到推文連結")
                     await ctx.followup.send("連結格式不符")
@@ -155,7 +159,7 @@ async def read_message(message):
                     print("未找到推文連結")
                     await loading_message.delete()
         elif domain in DOMAIN_INSTAGRAM:
-            match = re.search(r"https://www.instagram.com/(p|reel)/([^/?]+)", message.content)
+            match = re.search(r"https://www.instagram.com/(p|reel|stories)/([^/?]+)", message.content)
             if match:
                 instagram_url = f"https://www.instagram.com/{match.group(1)}/{match.group(2)}"
                 await message.delete()
@@ -164,9 +168,12 @@ async def read_message(message):
                     print("提取的推文連結:", instagram_url)
                     try:
                         sns_info = instagram_crawler.fetch_data_from_graphql(instagram_url)
-                        print(sns_info)
-                        await message.channel.send(content=instagram_url,
-                                                   embeds=discord_bot.generate_embeds(username, sns_info))
+                        if sns_info:
+                            print(sns_info)
+                            await message.channel.send(content=instagram_url,
+                                                       embeds=discord_bot.generate_embeds(username, sns_info))
+                        else:
+                            await message.channel.send(convert_to_ddinstagram_url(instagram_url))
                         await loading_message.delete()
                     except:
                         await loading_message.delete()
@@ -256,9 +263,7 @@ async def melon_chart(ctx, option: Option(str, description="請選擇榜單類�
     else:
         await ctx.followup.send("請選擇正確的榜單類型")
 
-
-@bot.slash_command(description="修正 Instagram 預覽")
-async def ddinstagram(ctx, link: Option(str, "請輸入連結", required=True)):
+def convert_to_ddinstagram_url(link):
     if link.startswith("https://www.instagram.com"):
         parsed_url = urlparse(link)
         # 修改 netloc 來將 'instagram.com' 替換為 'ddinstagram.com'
@@ -266,6 +271,12 @@ async def ddinstagram(ctx, link: Option(str, "請輸入連結", required=True)):
         # 使用已修改的 netloc 並移除 query 參數來重建 URL
         modified_url = urlunparse(
             (parsed_url.scheme, modified_netloc, parsed_url.path, parsed_url.params, '', parsed_url.fragment))
+        return modified_url
+
+@bot.slash_command(description="修正 Instagram 預覽")
+async def ddinstagram(ctx, link: Option(str, "請輸入連結", required=True)):
+    modified_url = convert_to_ddinstagram_url(link)
+    if modified_url:
         await ctx.send_response(content=modified_url)
     else:
         await ctx.send_response(content="此連結非 Instagram 連結", ephemeral=False)
