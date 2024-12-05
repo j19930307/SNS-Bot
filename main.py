@@ -80,7 +80,7 @@ async def sns_preview(ctx, url):
                         print(sns_info)
                         await discord_bot.send_message(ctx, sns_info)
                     else:
-                        await ctx.followup.send(convert_to_ddinstagram_url(instagram_url))
+                        await ctx.followup.send(convert_to_instagramez_url(instagram_url))
                 else:
                     print("未找到推文連結")
                     await ctx.followup.send("連結格式不符")
@@ -173,7 +173,7 @@ async def read_message(message):
                             await message.channel.send(content=instagram_url,
                                                        embeds=discord_bot.generate_embeds(username, sns_info))
                         else:
-                            await message.channel.send(convert_to_ddinstagram_url(instagram_url))
+                            await message.channel.send(convert_to_instagramez_url(instagram_url))
                         await loading_message.delete()
                     except:
                         await loading_message.delete()
@@ -263,23 +263,16 @@ async def melon_chart(ctx, option: Option(str, description="請選擇榜單類�
     else:
         await ctx.followup.send("請選擇正確的榜單類型")
 
-def convert_to_ddinstagram_url(link):
+
+def convert_to_instagramez_url(link):
     if link.startswith("https://www.instagram.com"):
         parsed_url = urlparse(link)
-        # 修改 netloc 來將 'instagram.com' 替換為 'ddinstagram.com'
-        modified_netloc = parsed_url.netloc.replace("instagram.com", "ddinstagram.com")
+        # 修改 netloc 來將 'instagram.com' 替換為 'instagramez.com'
+        modified_netloc = parsed_url.netloc.replace("instagram.com", "instagramez.com")
         # 使用已修改的 netloc 並移除 query 參數來重建 URL
         modified_url = urlunparse(
             (parsed_url.scheme, modified_netloc, parsed_url.path, parsed_url.params, '', parsed_url.fragment))
         return modified_url
-
-@bot.slash_command(description="修正 Instagram 預覽")
-async def ddinstagram(ctx, link: Option(str, "請輸入連結", required=True)):
-    modified_url = convert_to_ddinstagram_url(link)
-    if modified_url:
-        await ctx.send_response(content=modified_url)
-    else:
-        await ctx.send_response(content="此連結非 Instagram 連結", ephemeral=False)
 
 
 @bot.listen('on_message')
