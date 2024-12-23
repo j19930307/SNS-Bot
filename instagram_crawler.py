@@ -111,6 +111,8 @@ def scrape_post_by_embed(shortcode: str):
 
     soup = BeautifulSoup(result.content, 'lxml')
     script_tag = soup.find('script', string=re.compile(r's.handle'))
+    if script_tag is None:
+        return
     match = re.search(r's\.handle\((\{.*?})\);', script_tag.string, re.DOTALL)
 
     if match:
