@@ -25,6 +25,7 @@ def get_channel_name(channel_handle: str):
 
 
 def get_latest_videos(channel_handle: str):
+    videos_id = []
     text = requests.get(f'https://www.youtube.com/@{channel_handle}/videos').text
     tree = html.fromstring(text)
     ytVariableName = 'ytInitialData'
@@ -35,21 +36,28 @@ def get_latest_videos(channel_handle: str):
             ytVariableData = json.loads(scriptContent.split(ytVariableDeclaration)[1][:-1])
             break
 
-    contents = ytVariableData['contents']['twoColumnBrowseResultsRenderer']['tabs'][1]['tabRenderer']['content'][
-        'richGridRenderer']['contents']
+    tabs = ytVariableData['contents']['twoColumnBrowseResultsRenderer']['tabs']
 
-    videos_id = []
+    for i in range(len(tabs)):
+        tabRemenderer = tabs[i].get('tabRenderer')
+        if tabRemenderer is None: break
+        # 從 tab 的 url 判斷哪一個是影片 (videos)
+        url = tabRemenderer['endpoint']['commandMetadata']['webCommandMetadata']['url']
+        if url.rsplit("/", 1)[-1] == "videos":
+            contents = tabs[i]['tabRenderer']['content']['richGridRenderer']['contents']
 
-    for content in contents:
-        richItemRenderer = content.get('richItemRenderer', None)
-        if richItemRenderer is not None:
-            videoRenderer = richItemRenderer['content']['videoRenderer']
-            video_id = videoRenderer['videoId']
-            videos_id.append(video_id)
+            for content in contents:
+                richItemRenderer = content.get('richItemRenderer')
+                if richItemRenderer is None: break
+                videoRenderer = richItemRenderer['content']['videoRenderer']
+                video_id = videoRenderer['videoId']
+                videos_id.append(video_id)
+
     return videos_id
 
 
 def get_latest_shorts(channel_handle: str):
+    videos_id = []
     text = requests.get(f'https://www.youtube.com/@{channel_handle}/shorts').text
     tree = html.fromstring(text)
     ytVariableName = 'ytInitialData'
@@ -60,27 +68,32 @@ def get_latest_shorts(channel_handle: str):
             ytVariableData = json.loads(scriptContent.split(ytVariableDeclaration)[1][:-1])
             break
 
-    contents = ytVariableData['contents']['twoColumnBrowseResultsRenderer']['tabs'][2]['tabRenderer']['content'][
-        'richGridRenderer']['contents']
+    tabs = ytVariableData['contents']['twoColumnBrowseResultsRenderer']['tabs']
 
-    videos_id = []
-
-    for content in contents:
-        richItemRenderer = content.get('richItemRenderer', None)
-        if richItemRenderer is not None:
-            reelItemRenderer = richItemRenderer['content'].get('reelItemRenderer', None)
-            shortsLockupViewModel = richItemRenderer['content'].get('shortsLockupViewModel', None)
-            if reelItemRenderer is not None:
-                video_id = reelItemRenderer['videoId']
-                videos_id.append(video_id)
-            elif shortsLockupViewModel is not None:
-                video_id = shortsLockupViewModel['onTap']['innertubeCommand']['reelWatchEndpoint']['videoId']
-                videos_id.append(video_id)
+    for i in range(len(tabs)):
+        tabRemenderer = tabs[i].get('tabRenderer')
+        if tabRemenderer is None: break
+        # 從 tab 的 url 判斷哪一個是短影片 (shorts)
+        url = tabRemenderer['endpoint']['commandMetadata']['webCommandMetadata']['url']
+        if url.rsplit("/", 1)[-1] == "shorts":
+            contents = tabs[i]['tabRenderer']['content']['richGridRenderer']['contents']
+            for content in contents:
+                richItemRenderer = content.get('richItemRenderer')
+                if richItemRenderer is not None:
+                    reelItemRenderer = richItemRenderer['content'].get('reelItemRenderer')
+                    shortsLockupViewModel = richItemRenderer['content'].get('shortsLockupViewModel')
+                    if reelItemRenderer is not None:
+                        video_id = reelItemRenderer['videoId']
+                        videos_id.append(video_id)
+                    elif shortsLockupViewModel is not None:
+                        video_id = shortsLockupViewModel['onTap']['innertubeCommand']['reelWatchEndpoint']['videoId']
+                        videos_id.append(video_id)
 
     return videos_id
 
 
 def get_latest_streams(channel_handle: str):
+    videos_id = []
     text = requests.get(f'https://www.youtube.com/@{channel_handle}/streams').text
     tree = html.fromstring(text)
     ytVariableName = 'ytInitialData'
@@ -91,16 +104,15 @@ def get_latest_streams(channel_handle: str):
             ytVariableData = json.loads(scriptContent.split(ytVariableDeclaration)[1][:-1])
             break
 
-    tabRenderer = ytVariableData['contents']['twoColumnBrowseResultsRenderer']['tabs'][3].get('tabRenderer', None)
-    if not tabRenderer:
-        return []
-    url = tabRenderer['endpoint']['commandMetadata']['webCommandMetadata']['url']
-    match = re.search(r'/([^/]+)$', url)
+    tabs = ytVariableData['contents']['twoColumnBrowseResultsRenderer']['tabs']
 
-    videos_id = []
-    if match:
-        if match.group(1) == "streams":
-            contents = tabRenderer['content']['richGridRenderer']['contents']
+    for i in range(len(tabs)):
+        tabRemenderer = tabs[i].get('tabRenderer')
+        if tabRemenderer is None: break
+        # 從 tab 的 url 判斷哪一個是直播 (streams)
+        url = tabRemenderer['endpoint']['commandMetadata']['webCommandMetadata']['url']
+        if url.rsplit("/", 1)[-1] == "streams":
+            contents = tabs[i]['tabRenderer']['content']['richGridRenderer']['contents']
             for content in contents:
                 richItemRenderer = content.get('richItemRenderer', None)
                 if richItemRenderer is not None:
