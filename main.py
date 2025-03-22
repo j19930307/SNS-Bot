@@ -12,15 +12,18 @@ from google.cloud import firestore
 import bstage_crawler
 import discord_bot
 import instagram_crawler
+import threads_crawler
 from melon_chart import top100, hot100, daily, weekly, monthly
 import twitter_crawler
 import weverse_crawler
 import youtube_crawler
 from discord_bot import (DOMAIN_WEVERSE, DOMAIN_TWITTER, DOMAIN_X,
-                         DOMAIN_BSTAGE, DOMAIN_INSTAGRAM)
+                         DOMAIN_BSTAGE, DOMAIN_INSTAGRAM, DOMAIN_THREADS)
 from firebase import Firebase
 from sns_type import SnsType
 from urllib.parse import urlparse, urlunparse
+
+from threads_crawler import fetch_data_from_browser
 
 load_dotenv()
 BOT_TOKEN = os.environ["BOT_TOKEN"]
@@ -84,7 +87,11 @@ async def sns_preview(ctx, url):
                 else:
                     print("未找到推文連結")
                     await ctx.followup.send("連結格式不符")
-
+        elif domain in DOMAIN_THREADS:
+            await ctx.defer()
+            sns_info = threads_crawler.fetch_data_from_browser(url)
+            if sns_info:
+                await discord_bot.send_message(ctx, sns_info)
     else:
         print("無法提取域名")
 

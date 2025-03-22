@@ -15,6 +15,7 @@ DOMAIN_KISS_OF_LIFE_1 = "kissoflife-official.com"
 DOMAIN_KISS_OF_LIFE_2 = "kissoflife.bstage.in"
 DOMAIN_BSTAGE = [DOMAIN_H1KEY_1, DOMAIN_H1KEY_2, DOMAIN_YEEUN, DOMAIN_PURPLE_KISS, DOMAIN_KISS_OF_LIFE_1,
                  DOMAIN_KISS_OF_LIFE_2]
+DOMAIN_THREADS = "threads.net"
 
 
 def post_source(url: str):

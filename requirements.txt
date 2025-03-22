@@ -12,3 +12,5 @@ firebase-admin==6.6.0
 python-dotenv==1.0.1
 google-api-python-client==2.163.0
 jmespath==1.0.1
+nested_lookup==0.2.25
+parsel==1.10.0
