@@ -1,6 +1,9 @@
 import json
 import re
+from datetime import datetime
+from enum import Enum
 from typing import Dict
+from urllib.parse import urlparse, parse_qs, unquote
 
 import jmespath
 import requests
@@ -14,7 +17,15 @@ from selenium import webdriver
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 
+from instagram_crawler import shorten_url
 from sns_info import SnsInfo, Profile
+
+
+class MediaType(Enum):
+    IMAGE = 1  # 只包含一張圖片的貼文
+    VIDEO = 2  # 只包含一則影片的貼文
+    CAROUSEL_ALBUM = 8  # 輪播相簿貼文(包含圖片或影片)
+    TEXT_POST = 19  # 只包含文字內容的貼文
 
 
 def parse_thread(data: Dict) -> Dict:
@@ -39,25 +50,45 @@ def parse_thread(data: Dict) -> Dict:
         carousel_videos: post.carousel_media[?video_versions].video_versions[0].url,
         attachment: post.text_post_app_info.link_preview_attachment.url
         post_image: post.image_versions2.candidates[0].url
-        post_video: post.video_versions[0].url
+        post_video: post.video_versions[0].url,
+        media_type: post.media_type,
+        linked_inline_media: post.text_post_app_info.linked_inline_media
     }""",
         data,
     )
 
     result["all_images"] = []
     result["all_videos"] = []
-    if result["attachment"]:
-        result["all_videos"].append(result["attachment"])
-    if result["carousel_images"]:
-        result["all_images"].extend(result["carousel_images"])
-    else:
+
+    if result["media_type"] == MediaType.IMAGE.value:  # 只包含一張圖片的貼文
         if result["post_image"] and not result["post_video"]:
-            result["all_images"].append(result["post_image"])
-    if result["carousel_videos"]:
-        result["all_videos"].extend(result["carousel_videos"])
-    else:
+            result["all_images"].append(shorten_url(result["post_image"]))
+    elif result["media_type"] == MediaType.VIDEO.value:  # 只包含一則影片的貼文
         if result["post_video"]:
-            result["all_videos"].append(result["post_video"])
+            result["all_videos"].append(shorten_url(result["post_video"]))
+    elif result["media_type"] == MediaType.CAROUSEL_ALBUM.value:  # 輪播相簿貼文(包含圖片或影片)
+        if result["carousel_images"]:
+            result["all_images"].extend([img for img in result["carousel_images"]])
+        if result["carousel_videos"]:
+            result["all_videos"].extend([shorten_url(video) for video in result["carousel_videos"]])
+    elif result["media_type"] == MediaType.TEXT_POST.value:  # 只包含文字內容的貼文
+        linked_inline_media = result["linked_inline_media"]
+        # 貼文內如果有連結此欄位可能會有值 (目前只發現 Instagram 連結會有)
+        if linked_inline_media:
+            if linked_inline_media["media_type"] == MediaType.VIDEO.value:  # 只有一張圖片
+                result["all_videos"].append(shorten_url(linked_inline_media["video_versions"][0]["url"]))
+            elif linked_inline_media["media_type"] == MediaType.IMAGE.value:  # 只有一則影片
+                result["all_images"].append(linked_inline_media["image_versions2"]["candidates"][0]["url"])
+            elif linked_inline_media["media_type"] == MediaType.CAROUSEL_ALBUM.value:  # 多個圖片或影片
+                result["all_videos"].extend(
+                    [shorten_url(media["video_versions"][0]["url"]) for media in linked_inline_media["carousel_media"]
+                     if
+                     media.get("video_versions")])
+                result["all_images"].extend([media["image_versions2"]["candidates"][0]["url"] for media in
+                                             linked_inline_media["carousel_media"] if not media.get("video_versions")])
+        # 沒有值則顯示原始連結
+        elif result["attachment"]:
+            result["all_videos"].append(extract_original_url(result["attachment"]))
 
     if result["reply_count"] and isinstance(result["reply_count"], str):
         result["reply_count"] = int(result["reply_count"].split(" ")[0])
@@ -65,6 +96,12 @@ def parse_thread(data: Dict) -> Dict:
     result["url"] = f"https://www.threads.net/@{result['username']}/post/{result['code']}"
 
     return result
+
+def extract_original_url(threads_url: str) -> str:
+    """從 Threads 的跳轉 URL 中提取原始 URL"""
+    parsed_url = urlparse(threads_url)
+    query_params = parse_qs(parsed_url.query)
+    return unquote(query_params.get("u", [""])[0])  # 取得 'u' 參數的值並解碼
 
 
 def scrape_thread(url: str) -> dict:
@@ -94,7 +131,7 @@ def scrape_thread(url: str) -> dict:
 
     try:
         driver.get(url)
-        driver.implicitly_wait(5)  # 等待網頁載入
+        driver.implicitly_wait(10)  # 等待網頁載入
 
         # 獲取網頁內容
         selector = Selector(driver.page_source)
@@ -142,7 +179,8 @@ def fetch_data_from_browser(url: str):
                    profile=Profile(name=thread["username"], url=shorten_url(thread["user_pic"])),
                    content=thread["text"],
                    images=images,
-                   videos=[shorten_url(video) for video in videos])
+                   videos=videos,
+                   timestamp=datetime.fromtimestamp(thread["published_on"]))
 
 
 if __name__ == "__main__":
