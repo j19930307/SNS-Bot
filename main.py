@@ -92,6 +92,8 @@ async def sns_preview(ctx, url):
             sns_info = threads_crawler.fetch_data_from_browser(url)
             if sns_info:
                 await discord_bot.send_message(ctx, sns_info)
+            else:
+                await ctx.followup.send("資料解析失敗", ephemeral=True)
     else:
         print("無法提取域名")
 

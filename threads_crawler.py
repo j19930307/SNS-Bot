@@ -2,6 +2,7 @@ import json
 import re
 from datetime import datetime
 from enum import Enum
+from itertools import chain
 from typing import Dict
 from urllib.parse import urlparse, parse_qs, unquote
 
@@ -95,7 +96,9 @@ def parse_thread(data: Dict) -> Dict:
 
     result["url"] = f"https://www.threads.net/@{result['username']}/post/{result['code']}"
 
+    print(result)
     return result
+
 
 def extract_original_url(threads_url: str) -> str:
     """從 Threads 的跳轉 URL 中提取原始 URL"""
@@ -105,9 +108,10 @@ def extract_original_url(threads_url: str) -> str:
 
 
 def scrape_thread(url: str) -> dict:
-    match = re.search(r"@([^/]+)/post/", url)
+    pattern = r"threads\.net/@([\w.]+)/post/([\w-]+)"
+    match = re.search(pattern, url)
     if match:
-        username = match.group(1)
+        username, post_code = match.groups()
     else:
         return {}
 
@@ -138,28 +142,25 @@ def scrape_thread(url: str) -> dict:
 
         # 提取 JSON 數據
         hidden_datasets = selector.css('script[type="application/json"][data-sjs]::text').getall()
+
+        thread_items = []
+
         for hidden_dataset in hidden_datasets:
             if '"ScheduledServerJS"' not in hidden_dataset or "thread_items" not in hidden_dataset:
                 continue
             data = json.loads(hidden_dataset)
 
             # 使用 nested_lookup 找出 thread_items
-            thread_items = nested_lookup("thread_items", data)
-            if not thread_items:
-                continue
+            temp_thread_items = nested_lookup("thread_items", data)
+            thread_items.extend(temp_thread_items)
 
-            # 解析 Threads 貼文
-            threads = [parse_thread(t) for thread in thread_items for t in thread]
-
+        if thread_items:
             # 找出指定用戶的主貼文
-            thread = [thread for thread in threads if thread["username"] == username]
-            if thread:
-                return {
-                    "thread": threads[0],  # 主貼文
-                    "replies": threads[1:],  # 回覆
-                }
-
-        raise ValueError("Could not find thread data in page")
+            return next((parse_thread(thread) for item in thread_items for thread in item
+                         if thread["post"]["user"]["username"] == username and thread["post"]["code"] == post_code),
+                        None)
+        else:
+            return {}
     finally:
         driver.quit()  # 關閉瀏覽器
 
@@ -170,9 +171,9 @@ def shorten_url(long_url):
 
 
 def fetch_data_from_browser(url: str):
-    info = scrape_thread(url)
-    print(info)
-    thread = info["thread"]
+    thread = scrape_thread(url)
+    if not thread: return
+    print(thread)
     images = thread.get("all_images") or []
     videos = thread.get("all_videos") or []
     return SnsInfo(post_link=thread["url"],
@@ -184,4 +185,4 @@ def fetch_data_from_browser(url: str):
 
 
 if __name__ == "__main__":
-    print(fetch_data_from_browser("https://www.threads.net/@baggyubin73/post/DHhpcHmzlt5"))
+    print(fetch_data_from_browser("https://www.threads.net/@jiawen_516/post/C7RTaLPvHCQ/?xmt=AQGzSKH2pbap4CBbulL5kXEwW8AafDdViGPVRr8vKwL4zw"))
