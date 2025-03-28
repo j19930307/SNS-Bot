@@ -1,66 +1,62 @@
 import json
 import re
+from typing import Dict
 
+import jmespath
 import requests
 from bs4 import BeautifulSoup
+from dateutil import parser
 from fake_useragent import UserAgent
 
 from sns_info import SnsInfo, Profile
 
 
 def fetch_data(url: str):
-    match = re.match(r'https://(.*)/(story/feed|contents)/(.*)', url)
-    try:
+    match = re.search(r"https?://([^/]+)/story/feed/([\w\d]+)", url)
+    if match:
         domain = match.group(1)
-        content_id = match.group(3)
+        post_id = match.group(2)
+        parts = re.split(r"[.-]", domain)
+        artist = parts[0]
+
         ua = UserAgent()
         user_agent = ua.random
         headers = {'user-agent': user_agent}
-        if match.group(2) == "story/feed":
-            response = requests.get(
-                url=f"https://{domain}/_next/data/HZP_I8FxxAHc5XDHH3dgs/ko/story/feed/{content_id}.json",
-                headers=headers)
-            data = json.loads(response.text)
-            page_props = data["pageProps"]
-            post = page_props.get("post")
-            if post is not None:
-                content = post["body"]
-                poster_name = post["author"]["nickname"]
-                poster_image_url = post["author"]["avatarImgPath"]
-                images_url = []
-                videos_url = []
-                try:
-                    images_url.extend(post["images"])
-                except KeyError:
-                    print("找不到圖片")
-                    images_url.extend(post["video"]["thumbnailPaths"])
-                    videos_url.append(post["video"]["hlsPath"])
-                return SnsInfo(post_link=url, profile=Profile(name=poster_name, url=poster_image_url), content=content,
-                               images=images_url, videos=videos_url)
-        elif match.group(2) == "contents":
-            response = requests.get(
-                url=f"https://{domain}/_next/data/Mvb0vi-PA7Tn3acXkiiUv/contents/{content_id}.json",
-                headers=headers)
-            data = json.loads(response.text)
-            page_props = data["pageProps"]
-            contents = page_props.get("contents")
-            # 標題
-            title = contents["title"]
-            # 內文 and 圖
-            encoded_body = contents["body"]
-            images_url = []
-            videos_url = []
-            soup = BeautifulSoup(encoded_body, 'lxml')
-            image_tag = soup.findAll('img')
-            if image_tag:
-                for tag in image_tag:
-                    images_url.append(tag.get('src'))
-            # 內文
-            content = "\n".join(["\n" if p.text == "\xa0" else p.text for p in soup.findAll("p")])
-            # 沒有發文者資訊，用 id 代替
-            author = page_props["space"]["id"]
-            author_image = page_props["space"]["faviconImgPath"]
-            return SnsInfo(post_link=url, profile=Profile(name=author, url=author_image), content=content,
-                           images=images_url, videos=videos_url, title=title)
-    except IndexError:
-        print("網址錯誤")
+        response = requests.get(url=f"https://{domain}/svc/home/api/v1/home/star/feeds",
+                                headers=headers)
+
+        data = json.loads(response.text)
+        for item in data.get("items"):
+            if item.get("typeId") == post_id:
+                post = parse_post(item)
+                images = []
+                videos = []
+                if post.get("images"):
+                    images.extend(post["images"])
+                if post.get("video_thumbnail"):
+                    images.append(f"https://image.static.bstage.in/cdn-cgi/image/metadata=none/{artist}" + post[
+                        "video_thumbnail"])
+                if post.get("video"):
+                    videos.append(f"https://media.static.bstage.in/{artist}" + post["video"])
+                return SnsInfo(post_link=url, profile=Profile(name=post["auther_name"], url=post["auther_image_url"]),
+                               content=post["content"], images=images, videos=videos,
+                               timestamp=parser.isoparse(post["published_at"]))
+
+
+def parse_post(data: Dict) -> Dict:
+    return jmespath.search(
+        """{
+        auther_name: author.nickname,
+        auther_image_url: author.avatarImgPath,
+        content: description,
+        images: images,
+        video: video.hlsPath.path
+        video_thumbnail: video.thumbnailPaths[0].path
+        published_at: publishedAt
+    }""",
+        data
+    )
+
+
+if __name__ == "__main__":
+    print(fetch_data("https://gyubin.bstage.in/story/feed/67cc3489695e7d3734e427d7"))

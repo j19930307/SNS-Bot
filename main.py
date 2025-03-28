@@ -59,18 +59,13 @@ async def sns_preview(ctx, url):
                     await discord_bot.send_message(ctx, sns_info)
                 else:
                     print("未找到推文連結")
-        elif domain in DOMAIN_BSTAGE:
-            pattern = r'(https://' + re.escape(domain) + r'/(story/feed/[^?]+|contents/[^?]+))'
-            match = re.search(pattern, url)
-            if match:
-                bstage_url = match.group(1)
-                if bstage_url:
-                    print("提取的推文連結:", bstage_url)
-                    await ctx.defer()
-                    sns_info = bstage_crawler.fetch_data(bstage_url)
-                    await discord_bot.send_message(ctx, sns_info)
+        elif domain in DOMAIN_BSTAGE or "story/feed" in url:
+            await ctx.defer()
+            sns_info = bstage_crawler.fetch_data(url)
+            if sns_info:
+                await discord_bot.send_message(ctx, sns_info)
             else:
-                print("未找到推文連結")
+                await ctx.followup.send("資料解析失敗", ephemeral=True)
         elif domain in DOMAIN_INSTAGRAM:
             match = re.search(r'(https://www.instagram.com/(p|reel|stories)/[^?]+)', url)
             if match:

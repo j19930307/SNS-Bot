@@ -55,7 +55,7 @@ def parse_thread(data: Dict) -> Dict:
         media_type: post.media_type,
         linked_inline_media: post.text_post_app_info.linked_inline_media
     }""",
-        data,
+        data
     )
 
     result["all_images"] = []
