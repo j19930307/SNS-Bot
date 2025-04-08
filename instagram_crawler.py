@@ -118,9 +118,12 @@ def scrape_post_by_embed(shortcode: str):
     if match:
         json_str = match.group(1)
         data = json.loads(json_str)
-        context_json = data["require"][1][3][0].get("contextJSON")
-        if context_json:
-            context_dict = json.loads(context_json)
-            gql_data = context_dict["gql_data"]
-            if gql_data:
-                return gql_data["shortcode_media"]
+        try:
+            context_json = data["require"][1][3][0].get("contextJSON")
+            if context_json:
+                context_dict = json.loads(context_json)
+                gql_data = context_dict["gql_data"]
+                if gql_data:
+                    return gql_data["shortcode_media"]
+        except IndexError:
+            return
