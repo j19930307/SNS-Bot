@@ -2,22 +2,16 @@ import json
 import re
 from datetime import datetime
 from enum import Enum
-from itertools import chain
 from typing import Dict
 from urllib.parse import urlparse, parse_qs, unquote
 
 import jmespath
 import requests
 from fake_useragent import UserAgent
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from parsel import Selector
 from nested_lookup import nested_lookup
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
-from selenium.webdriver.common.by import By
-
 from instagram_crawler import shorten_url
 from sns_info import SnsInfo, Profile
 
@@ -94,7 +88,7 @@ def parse_thread(data: Dict) -> Dict:
     if result["reply_count"] and isinstance(result["reply_count"], str):
         result["reply_count"] = int(result["reply_count"].split(" ")[0])
 
-    result["url"] = f"https://www.threads.net/@{result['username']}/post/{result['code']}"
+    result["url"] = f"https://www.threads.com/@{result['username']}/post/{result['code']}"
 
     print(result)
     return result
@@ -108,7 +102,7 @@ def extract_original_url(threads_url: str) -> str:
 
 
 def scrape_thread(url: str) -> dict:
-    pattern = r"threads\.net/@([\w.]+)/post/([\w-]+)"
+    pattern = r"threads\.com/@([\w.]+)/post/([\w-]+)"
     match = re.search(pattern, url)
     if match:
         username, post_code = match.groups()
@@ -121,21 +115,16 @@ def scrape_thread(url: str) -> dict:
 
     chrome_options = ChromeOptions()
     chrome_options.add_argument("--headless")  # 啟用無頭模式
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # 避免被偵測
-    chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument(f'user-agent={user_agent}')
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # options = ChromeOptions()
-    # options.add_argument("--start-maximized")
-    # options.add_argument('--headless')
-    # options.add_experimental_option("excludeSwitches", ["enable-automation"])
-
-    # 啟動 ChromeDriver
+    # 自動抓取與瀏覽器匹配的 ChromeDriver 版本
     driver = webdriver.Chrome(options=chrome_options)
 
     try:
         driver.get(url)
-        driver.implicitly_wait(10)  # 等待網頁載入
+        driver.implicitly_wait(20)  # 等待網頁載入
 
         # 獲取網頁內容
         selector = Selector(driver.page_source)
@@ -185,4 +174,4 @@ def fetch_data_from_browser(url: str):
 
 
 if __name__ == "__main__":
-    print(fetch_data_from_browser("https://www.threads.net/@jiawen_516/post/C7RTaLPvHCQ/?xmt=AQGzSKH2pbap4CBbulL5kXEwW8AafDdViGPVRr8vKwL4zw"))
+    print(fetch_data_from_browser("https://www.threads.com/@jackwang1227/post/DI2LvChSeP9?xmt=AQGzFuyq0Wqu6hMrPfIgGTiGFfTi3mex0j5uWLDRAogNHQ"))
