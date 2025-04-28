@@ -84,9 +84,11 @@ async def sns_preview(ctx, url):
                     await ctx.followup.send("連結格式不符")
         elif domain in DOMAIN_THREADS:
             await ctx.defer()
-            sns_info = threads_crawler.fetch_data_from_browser(url)
+            sns_info, share_info = threads_crawler.fetch_data_from_browser(url)
             if sns_info:
                 await discord_bot.send_message(ctx, sns_info)
+                if share_info:
+                    await discord_bot.send_message(ctx, share_info)
             else:
                 await ctx.followup.send("資料解析失敗", ephemeral=True)
     else:
