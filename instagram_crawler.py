@@ -12,8 +12,25 @@ import httpx
 
 
 def shorten_url(long_url):
-    response = requests.get("https://tinyurl.com/api-create.php?url=" + long_url)
-    return response.text
+    try:
+        # 嘗試使用 is.gd
+        response = requests.get("https://is.gd/create.php", params={"format": "simple", "url": long_url}, timeout=5)
+        if response.ok and response.text.startswith("http"):
+            return response.text
+    except Exception:
+        pass
+
+    try:
+        # 嘗試使用 CleanURI
+        response = requests.post("https://cleanuri.com/api/v1/shorten", data={"url": long_url}, timeout=5)
+        if response.ok:
+            result = response.json()
+            if "result_url" in result:
+                return result["result_url"]
+    except Exception:
+        pass
+
+    return None  # 如果全部失敗則回傳 None
 
 
 def parse_post(data: Dict) -> Dict:
