@@ -201,11 +201,18 @@ async def preview(ctx, link: Option(str, "請輸入連結", required=True, defau
     await sns_preview(ctx, link)
 
 
+bstage_type = [SnsType.BSTAGE.value, SnsType.MNET_PLUS.value]
+
+
 @bot.slash_command(description="訂閱 b.stage 帳號通知")
-async def bstage_subscribe(ctx,
-                           account: Option(str, "請輸入要訂閱帳號，例如網址為 https://h1key.bstage.in，帳號則為 h1key",
+async def bstage_subscribe(ctx, option: Option(str, description="請選擇訂閱平台", choices=bstage_type, required=True),
+                           account: Option(str,
+                                           "請輸入訂閱帳號，例如 https://h1key.bstage.in，帳號則為 h1key；https://artist.mnetplus.world/main/stg/izna 帳號則為 izna",
                                            required=True, default='')):
-    await add_bstage_account_to_firestore(ctx, account.strip())
+    if option == SnsType.BSTAGE.value:
+        await add_bstage_account_to_firestore(ctx, SnsType.BSTAGE, account.strip())
+    elif option == SnsType.MNET_PLUS.value:
+        await add_bstage_account_to_firestore(ctx, SnsType.MNET_PLUS, account.strip())
 
 
 async def get_subscribed_list_from_firestore(ctx: discord.AutocompleteContext):
@@ -292,12 +299,12 @@ async def remove_account_from_firestore(ctx, sns_type: SnsType, id):
     await ctx.followup.send("取消訂閱成功")
 
 
-async def add_bstage_account_to_firestore(ctx, account: str):
+async def add_bstage_account_to_firestore(ctx, sns_type: SnsType, account: str):
     await ctx.defer()
-    if firebase.is_account_exists(SnsType.BSTAGE, account):
+    if firebase.is_account_exists(sns_type, account):
         await ctx.followup.send(f"{account} 已訂閱過")
     else:
-        firebase.add_account(SnsType.BSTAGE, id=account, username=account, discord_channel_id=str(ctx.channel.id),
+        firebase.add_account(sns_type, id=account, username=account, discord_channel_id=str(ctx.channel.id),
                              updated_at=firestore.SERVER_TIMESTAMP)
         await ctx.followup.send(f"{account} 訂閱成功")
 
