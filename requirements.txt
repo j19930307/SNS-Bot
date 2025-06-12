@@ -1,4 +1,4 @@
-requests==2.32.3
+requests==2.32.4
 aiohttp==3.11.13
 selenium==4.29.0
 beautifulsoup4==4.13.3
