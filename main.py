@@ -9,6 +9,7 @@ from discord.utils import basic_autocomplete
 from dotenv import load_dotenv
 from google.cloud import firestore
 
+import berriz_crawler
 import bstage_crawler
 import discord_bot
 import instagram_crawler
@@ -18,7 +19,7 @@ import twitter_crawler
 import weverse_crawler
 import youtube_crawler
 from discord_bot import (DOMAIN_WEVERSE, DOMAIN_TWITTER, DOMAIN_X,
-                         DOMAIN_BSTAGE, DOMAIN_INSTAGRAM, DOMAIN_THREADS)
+                         DOMAIN_BSTAGE, DOMAIN_INSTAGRAM, DOMAIN_THREADS, DOMAIN_BERRIZ)
 from firebase import Firebase
 from sns_type import SnsType
 from urllib.parse import urlparse, urlunparse
@@ -91,6 +92,13 @@ async def sns_preview(ctx, url):
                     await discord_bot.send_message(ctx, share_info)
             else:
                 await ctx.followup.send("資料解析失敗", ephemeral=True)
+        elif domain in DOMAIN_BERRIZ:
+            await ctx.defer()
+            sns_info = berriz_crawler.fetch_data(url)
+            if sns_info:
+                await discord_bot.send_message(ctx, sns_info)
+            else:
+                await ctx.followup.send("抓取資料失敗", ephemeral=True)
     else:
         print("無法提取域名")
 
