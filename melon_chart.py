@@ -104,6 +104,8 @@ def get_ranking_list_text(song_list: list[dict]):
             rank_change = ""
 
         artist_name = ",".join(artist.ARTISTNAME for artist in info.ARTISTLIST)
+        # 限制 artist_name 最多30個字
+        artist_name = artist_name[:30] + "..." if len(artist_name) > 30 else artist_name
         curr_rank = str(curr_rank).rjust(3)
         rank_change = rank_change.ljust(6)
         ranking_list.append(f"{curr_rank} {rank_change} {artist_name} - {info.SONGNAME}")
