@@ -7,6 +7,8 @@ from discord import Option, OptionChoice
 from discord.utils import basic_autocomplete
 from google.cloud import firestore
 
+import berriz_crawler
+from firebase import Firebase
 from sns_type import SnsType
 import youtube_crawler
 
@@ -23,7 +25,7 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
             option: Option(str, description="請選擇訂閱平台", choices=bstage_type, required=True),
             account: Option(str,
                             "請輸入訂閱帳號，例如 https://h1key.bstage.in，帳號則為 h1key；https://artist.mnetplus.world/main/stg/izna 帳號則為 izna",
-                            required=True, default='')
+                            required=True)
     ):
         if option == SnsType.BSTAGE.value:
             await _add_bstage_account(ctx, firebase, SnsType.BSTAGE, account.strip())
@@ -48,7 +50,7 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
     async def youtube_subscribe(
             ctx,
             account: Option(str, "請輸入要訂閱頻道的帳號代碼。例如網址為 https://www.youtube.com/@STAYC，代碼則為 STAYC",
-                            required=True, default='')
+                            required=True)
     ):
         await _add_youtube_account(ctx, firebase, account.strip())
 
@@ -64,6 +66,22 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
                                   autocomplete=basic_autocomplete(_get_youtube_subscribed_list))
     ):
         await _remove_account(ctx, firebase, SnsType.YOUTUBE, value)
+
+    @bot.slash_command(description="訂閱 Berriz 帳號貼文通知")
+    async def berriz_subscribe(ctx, account: Option(str, "請輸入要訂閱頻道的帳號代碼。", required=True)):
+        await _add_berriz_account(ctx=ctx, firebase=firebase, account=account.strip().lower())
+
+    async def _get_berriz_subscribed_list(ctx: discord.AutocompleteContext):
+        """取得 Berriz 訂閱清單（自動完成用）"""
+        id_list = firebase.get_berriz_subscribed_list(str(ctx.interaction.channel.id))
+        return [OptionChoice(name=id, value=id) for id in id_list]
+
+    @bot.slash_command(description="取消訂閱 Berriz 帳號貼文通知")
+    async def berriz_unsubscribe(
+            ctx, value: discord.Option(str, "選擇要取消訂閱的帳號",
+                                       autocomplete=basic_autocomplete(_get_berriz_subscribed_list))
+    ):
+        await _remove_account(ctx, firebase, SnsType.BERRIZ, value)
 
 
 async def _add_bstage_account(ctx, firebase, sns_type: SnsType, account: str):
@@ -125,3 +143,20 @@ async def _remove_account(ctx, firebase, sns_type: SnsType, id):
     await ctx.defer()
     firebase.delete_account(sns_type, id)
     await ctx.followup.send("取消訂閱成功")
+
+
+async def _add_berriz_account(ctx, firebase: Firebase, account: str):
+    """新增 Berriz 帳號訂閱"""
+    await ctx.defer()
+    if firebase.is_account_exists(SnsType.BERRIZ, account):
+        await ctx.followup.send(f"{account} 已訂閱過")
+    else:
+        community_id = berriz_crawler.get_community_id(account)
+        if community_id:
+            firebase.add_berriz_account(
+                type=SnsType.BERRIZ, username=account, community_id=community_id,
+                discord_channel_id=str(ctx.channel.id), updated_at=firestore.SERVER_TIMESTAMP
+            )
+            await ctx.followup.send(f"{account} 訂閱成功")
+        else:
+            await ctx.followup.send(f"帳號不存在")

@@ -63,7 +63,8 @@ class Firebase:
         return [(doc.get("username"), doc.id) for doc in docs if doc.get("discord_channel_id") == discord_id]
 
     def add_youtube_account(self, handle: str, channel_name: str, discord_channel_id: str, latest_video_id: str,
-                            latest_video_published_at: datetime, latest_short_id: str, latest_short_published_at: datetime,
+                            latest_video_published_at: datetime, latest_short_id: str,
+                            latest_short_published_at: datetime,
                             latest_stream_id: str, latest_stream_published_at: datetime):
         doc_ref = self.__db.collection(SnsType.YOUTUBE.value).document(handle)
         data = {
@@ -86,4 +87,18 @@ class Firebase:
 
     def get_youtube_subscribed_list_from_discord_id(self, discord_id: str):
         docs = self.__db.collection(SnsType.YOUTUBE.value).stream()
+        return [doc.id for doc in docs if doc.get("discord_channel_id") == discord_id]
+
+    def add_berriz_account(self, type: SnsType, username: str, community_id: str, discord_channel_id: str,
+                           updated_at: datetime):
+        doc_ref = self.__db.collection(type.value).document(username)
+        data = {
+            "community_id": community_id,
+            "discord_channel_id": discord_channel_id,
+            "updated_at": updated_at
+        }
+        doc_ref.set(data)
+
+    def get_berriz_subscribed_list(self, discord_id: str):
+        docs = self.__db.collection(SnsType.BERRIZ.value).stream()
         return [doc.id for doc in docs if doc.get("discord_channel_id") == discord_id]
