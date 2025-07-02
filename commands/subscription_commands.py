@@ -8,9 +8,9 @@ from discord.utils import basic_autocomplete
 from google.cloud import firestore
 
 import berriz_crawler
+import youtube_crawler
 from firebase import Firebase
 from sns_type import SnsType
-import youtube_crawler
 
 
 def setup_subscription_commands(bot: discord.Bot, firebase):
@@ -152,11 +152,11 @@ async def _add_berriz_account(ctx, firebase: Firebase, account: str):
         await ctx.followup.send(f"{account} 已訂閱過")
     else:
         community_id = berriz_crawler.get_community_id(account)
-        if community_id:
-            firebase.add_berriz_account(
-                type=SnsType.BERRIZ, username=account, community_id=community_id,
-                discord_channel_id=str(ctx.channel.id), updated_at=firestore.SERVER_TIMESTAMP
-            )
+        board_id = berriz_crawler.get_board_id(community_id)
+        if community_id and board_id:
+            firebase.add_berriz_account(username=account, community_id=community_id, board_id=board_id,
+                                        discord_channel_id=str(ctx.channel.id), updated_at=firestore.SERVER_TIMESTAMP
+                                        )
             await ctx.followup.send(f"{account} 訂閱成功")
         else:
             await ctx.followup.send(f"帳號不存在")

@@ -89,11 +89,12 @@ class Firebase:
         docs = self.__db.collection(SnsType.YOUTUBE.value).stream()
         return [doc.id for doc in docs if doc.get("discord_channel_id") == discord_id]
 
-    def add_berriz_account(self, type: SnsType, username: str, community_id: str, discord_channel_id: str,
+    def add_berriz_account(self, username: str, community_id: str, board_id: str, discord_channel_id: str,
                            updated_at: datetime):
-        doc_ref = self.__db.collection(type.value).document(username)
+        doc_ref = self.__db.collection(SnsType.BERRIZ.value).document(username)
         data = {
             "community_id": community_id,
+            "board_id": board_id,
             "discord_channel_id": discord_channel_id,
             "updated_at": updated_at
         }

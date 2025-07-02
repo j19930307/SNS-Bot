@@ -1,7 +1,9 @@
 import re
-import requests
-from sns_info import SnsInfo, Profile
 from datetime import datetime, timezone
+
+import requests
+
+from sns_info import SnsInfo, Profile
 
 pattern = re.compile(r'/([^/]+)/board/([^/]+)/post/([^/]+)/')
 
@@ -26,7 +28,21 @@ def get_community_id(group_name: str):
             return response.json().get('data', {}).get('communityId')
     except Exception as e:
         print(f"Error getting community_id for {group_name}: {e}")
-    return None
+        return None
+
+
+def get_board_id(community_id: str):
+    url = f"https://svc-api.berriz.in/service/v1/community/info/{community_id}/menus"
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            menus = response.json().get("data", {}).get("menus", [])
+            for menu in menus:
+                if menu['type'] == 'board' and menu['iconType'] == 'artist':
+                    return menu['id']
+    except Exception as e:
+        print(f"Error getting board_id for {community_id}: {e}")
+        return None
 
 
 def get_post_info(board_id: str, community_id: str, group_name: str, post_id: str):
