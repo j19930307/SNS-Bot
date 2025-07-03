@@ -13,7 +13,7 @@ from tweety import Twitter
 from sns_info import SnsInfo, Profile
 
 
-def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo:
+def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo|None:
     ua = UserAgent()
     user_agent = ua.random
     headers = {'user-agent': user_agent}
@@ -43,6 +43,7 @@ def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo:
                        profile=Profile(name=f"{author_name} (@{screen_name})", url=author_avatar_url),
                        content=tweet_content, images=photos_url, videos=videos_url,
                        timestamp=datetime.fromtimestamp(created_timestamp_in_seconds))
+    return None
 
 
 def fetch_data_from_tweety(url: str):
@@ -108,7 +109,7 @@ def fetch_data_from_browser(url: str):
     # 取得 twitter 名稱
     div_tag = soup.find('div', class_='css-175oi2r r-zl2h9q')
     if div_tag:
-        span_tag = div_tag.find('span', class_='css-1qaijid r-bcqeeo r-qvutc0 r-poiln3')
+        span_tag = div_tag.find('span', class_='css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3')
         if span_tag:
             profile_name = span_tag.text
         else:
@@ -117,7 +118,7 @@ def fetch_data_from_browser(url: str):
         print("Div with specified class not found in the HTML.")
 
     # 取得 twitter id
-    pattern = r'https://twitter\.com/(\w+)/status/\d+'
+    pattern = r'https://x\.com/(\w+)/status/\d+'
     # 使用re.search来查找匹配
     match = re.search(pattern, url)
     if match:
@@ -127,12 +128,19 @@ def fetch_data_from_browser(url: str):
 
     # 取得 twitter 頭像
     div_tag = soup.find('div',
-                        class_='css-175oi2r r-1adg3ll r-1pi2tsx r-13qz1uu r-u8s1d r-1wyvozj r-1v2oles r-desppf r-bztko3')
+                        class_='css-175oi2r r-1niwhzg r-vvn4in r-u6sd8q r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw r-4gszlv'
+                        )
 
     if div_tag:
-        profile_image = div_tag.find('img', class_='css-9pa8cd')['src']
+        style = div_tag.get('style', '')
+        match = re.search(r'url\("(.+?)"\)', style)
+        if match:
+            profile_image = match.group(1)
+            print(profile_image)
+        else:
+            print("No URL found in style")
     else:
-        print("Div with specified class not found in the HTML.")
+        print("Div with specified class not found.")
 
     return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
                    content=description, images=images)
@@ -150,9 +158,7 @@ def fetch_data(url: str):
     if sns_info is not None:
         return sns_info
 
-    sns_info = fetch_data_from_tweety(url)
-    if sns_info is not None:
-        return sns_info
-
     sns_info = fetch_data_from_browser(url)
     return sns_info
+
+# fetch_data_from_browser("https://x.com/STAYC_official/status/1940759042483486882")
