@@ -36,21 +36,13 @@ class PreviewService:
                 await self._preview_threads(ctx, url)
             elif domain == 'berriz.in':
                 await self._preview_berriz(ctx, url)
-            elif self._is_bstage_domain(domain) or "story/feed" in url:
+            elif "story/feed" in url:
                 await self._preview_bstage(ctx, url)
             else:
                 await ctx.followup.send("不支援的網站", ephemeral=True)
 
         except Exception as e:
             await ctx.followup.send(f"預覽生成失敗: {str(e)}", ephemeral=True)
-
-    def _is_bstage_domain(self, domain: str) -> bool:
-        """檢查是否為 B.stage 相關域名"""
-        bstage_domains = [
-            'h1key-official.com', 'h1key.bstage.in', 'yeeun.bstage.in',
-            'purplekiss.co.kr', 'kissoflife-official.com', 'kissoflife.bstage.in'
-        ]
-        return domain in bstage_domains
 
     async def _preview_twitter(self, ctx, url: str, domain: str):
         """預覽 Twitter/X 內容"""
