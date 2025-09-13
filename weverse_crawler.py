@@ -13,32 +13,46 @@ from sns_info import SnsInfo, Profile
 def fetch_data(url: str):
     options = ChromeOptions()
     options.add_argument("--start-maximized")
-    options.add_argument('--headless')
+    options.add_argument("--headless")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     driver = webdriver.Chrome(options=options)
     driver.get(url)
+
     WebDriverWait(driver, 30, 1).until(
         EC.presence_of_element_located((By.CLASS_NAME, "WeverseViewer"))
     )
 
     html = driver.page_source
+    soup = BeautifulSoup(html, "lxml")
 
-    soup = BeautifulSoup(html, 'lxml')
     # 發文者頭像
-    profile_image = soup.find('img', {'class': 'ProfileThumbnailView_thumbnail__8W3E7'})["src"]
+    avatar_tag = soup.select_one(".avatar-decorator-_-avatar img")
+    avatar_url = avatar_tag["src"] if avatar_tag else None
+
     # 發文者名稱
-    profile_name = soup.find('strong', class_='PostHeaderView_nickname__6Cb7X').text
-    # 發文內容
-    content = soup.find('p', class_='p').text
-    # 發文所有圖片
-    img_tags = soup.find_all('img', class_='photo')
-    image_links = [img['src'] for img in img_tags]
-    # 發文所有影片縮圖
-    img_tag = soup.find('img', class_='PostPreviewVideoThumbnailView_thumbnail__dj7KA')
-    if img_tag:
-        image_links.append(img_tag['src'])
+    name_tag = soup.select_one(".avatar-decorator-_-title_area .avatar-decorator-_-title")
+    author_name = name_tag.get_text(strip=True) if name_tag else None
 
-    image_links = [urlparse(link)._replace(query='').geturl() for link in image_links]
+    # 發文內容：抓所有 p.p，保留 <br> 換行
+    text_blocks = []
+    for p in soup.select("p.p"):
+        text_blocks.append(p.get_text("\n", strip=True))
+    post_text = "\n\n".join(text_blocks)
 
-    return SnsInfo(post_link=url, profile=Profile(name=profile_name, url=profile_image),
-                   content=content, images=image_links)
+    # 照原始順序抓取所有 WidgetMedia (照片和影片縮圖)
+    image_urls = []
+    media_divs = soup.select("div.WidgetMedia")
+    for div in media_divs:
+        img_tag = div.find("img")
+        if img_tag and img_tag.get("src"):
+            image_urls.append(img_tag["src"])
+
+    # 去除網址 query 參數，保持乾淨
+    image_urls = [urlparse(link)._replace(query="").geturl() for link in image_urls]
+
+    return SnsInfo(
+        post_link=url,
+        profile=Profile(name=author_name, url=avatar_url),
+        content=post_text,
+        images=image_urls,
+    )
