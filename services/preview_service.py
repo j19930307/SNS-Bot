@@ -7,7 +7,7 @@ import re
 import discord
 
 import discord_bot
-from utils.url_utils import extract_domain
+from utils.url_utils import extract_domain, convert_to_custom_instagram_url
 
 
 class PreviewService:
@@ -84,7 +84,7 @@ class PreviewService:
             if sns_info:
                 await self._send_preview(ctx, sns_info)
             else:
-                await ctx.followup.send(convert_to_instagramez_url(instagram_url))
+                await ctx.followup.send(convert_to_custom_instagram_url(instagram_url))
 
     async def _preview_threads(self, ctx, url: str):
         """預覽 Threads 內容"""
