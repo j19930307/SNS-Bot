@@ -21,16 +21,16 @@ def extract_domain(url: str) -> str:
     return None
 
 
-def convert_to_instagramez_url(link):
+def convert_to_custom_instagram_url(link: str) -> str:
     """
-        將 Instagram 連結轉換為 instgramez
+        將 Instagram 連結轉換為 eeinstagram
     """
     if link.startswith("https://www.instagram.com"):
         parsed_url = urlparse(link)
-        # 修改 netloc 來將 'instagram.com' 替換為 'instagramez.com'
-        modified_netloc = parsed_url.netloc.replace("instagram.com", "instagramez.com")
+        # 修改 netloc 來將 'instagram.com' 替換為 'eeinstagram.com'
+        modified_netloc = parsed_url.netloc.replace("instagram.com", "eeinstagram.com")
         # 使用已修改的 netloc 並移除 query 參數來重建 URL
         modified_url = urlunparse(
             (parsed_url.scheme, modified_netloc, parsed_url.path, parsed_url.params, '', parsed_url.fragment))
         return modified_url
-    return None
+    return link

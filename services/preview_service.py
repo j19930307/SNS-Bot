@@ -3,10 +3,11 @@
 負責處理各種社群媒體連結的預覽功能
 """
 import re
+
 import discord
 
 import discord_bot
-from utils.url_utils import extract_domain, convert_to_instagramez_url
+from utils.url_utils import extract_domain
 
 
 class PreviewService:
