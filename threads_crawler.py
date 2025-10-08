@@ -6,17 +6,15 @@ from typing import Dict
 from urllib.parse import urlparse, parse_qs, unquote
 
 import jmespath
-import requests
 from fake_useragent import UserAgent
-from parsel import Selector
 from nested_lookup import nested_lookup
+from parsel import Selector
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from instagram_crawler import shorten_url
 from sns_info import SnsInfo, Profile
 
 
@@ -68,16 +66,16 @@ def extract_all_media(result):
 
     if media_type == MediaType.IMAGE.value:  # 只包含一張圖片的貼文
         if result.get("post_image") and not result.get("post_video"):
-            all_images.append(shorten_url(result["post_image"]))
+            all_images.append(result["post_image"])
 
     elif media_type == MediaType.VIDEO.value:  # 只包含一則影片的貼文
         if result.get("post_video"):
-            all_videos.append(shorten_url(result["post_video"]))
+            all_videos.append(result["post_video"])
 
     elif media_type == MediaType.CAROUSEL_ALBUM.value:  # 輪播相簿貼文 (包含圖片或影片)
         for media in result.get("carousel_media", []):
             if media.get("video_versions"):
-                all_videos.append(shorten_url(media["video_versions"][0]["url"]))
+                all_videos.append(media["video_versions"][0]["url"])
             else:
                 all_images.append(media["image_versions2"]["candidates"][0]["url"])
     elif media_type == MediaType.TEXT_POST.value:  # 只包含文字內容的貼文
@@ -86,13 +84,13 @@ def extract_all_media(result):
         if linked_inline_media:
             linked_media_type = linked_inline_media.get("media_type")
             if linked_media_type == MediaType.VIDEO.value:  # 只有一則影片
-                all_videos.append(shorten_url(linked_inline_media["video_versions"][0]["url"]))
+                all_videos.append(linked_inline_media["video_versions"][0]["url"])
             elif linked_media_type == MediaType.IMAGE.value:  # 只有一張圖片
                 all_images.append(linked_inline_media["image_versions2"]["candidates"][0]["url"])
             elif linked_media_type == MediaType.CAROUSEL_ALBUM.value:  # 多個圖片或影片
                 for media in linked_inline_media.get("carousel_media", []):
                     if media.get("video_versions"):
-                        all_videos.append(shorten_url(media["video_versions"][0]["url"]))
+                        all_videos.append(media["video_versions"][0]["url"])
                     else:
                         all_images.append(media["image_versions2"]["candidates"][0]["url"])
         # 沒有值則顯示原始連結
@@ -166,28 +164,6 @@ def scrape_thread(url: str) -> dict:
         return {}
 
 
-def shorten_url(long_url):
-    try:
-        # 嘗試使用 is.gd
-        response = requests.get("https://is.gd/create.php", params={"format": "simple", "url": long_url}, timeout=5)
-        if response.ok and response.text.startswith("http"):
-            return response.text
-    except Exception:
-        pass
-
-    try:
-        # 嘗試使用 CleanURI
-        response = requests.post("https://cleanuri.com/api/v1/shorten", data={"url": long_url}, timeout=5)
-        if response.ok:
-            result = response.json()
-            if "result_url" in result:
-                return result["result_url"]
-    except Exception:
-        pass
-
-    return None  # 如果全部失敗則回傳 None
-
-
 def fetch_data_from_browser(url: str):
     main_post = scrape_thread(url)
     if not main_post: return None
@@ -202,7 +178,7 @@ def fetch_data_from_browser(url: str):
 
 def convert_to_sns_info(thread):
     return SnsInfo(post_link=thread["url"],
-                   profile=Profile(name=thread["username"], url=shorten_url(thread["user_pic"])),
+                   profile=Profile(name=thread["username"], url=thread["user_pic"]),
                    content=thread["text"],
                    images=(thread.get("all_images") or []),
                    videos=(thread.get("all_videos") or []),

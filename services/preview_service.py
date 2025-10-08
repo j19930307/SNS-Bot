@@ -7,7 +7,7 @@ import re
 import discord
 
 import discord_bot
-from utils.url_utils import extract_domain, convert_to_custom_instagram_url
+from utils.url_utils import extract_domain, convert_to_custom_instagram_url, shorten_url
 
 
 class PreviewService:
@@ -82,6 +82,7 @@ class PreviewService:
             sns_info = instagram_crawler.fetch_data_from_graphql(instagram_url)
 
             if sns_info:
+                print(sns_info)
                 await self._send_preview(ctx, sns_info)
             else:
                 await ctx.followup.send(convert_to_custom_instagram_url(instagram_url))
@@ -120,8 +121,14 @@ class PreviewService:
 
     async def _send_preview(self, ctx, sns_info):
         """發送預覽訊息"""
+        print(f"訊息內容:\n{sns_info}")
         await ctx.followup.send(sns_info.post_link, embeds=discord_bot.generate_embeds("", sns_info))
 
-        videos = sns_info.videos
+        # 將過長的影片連結替換成短網址
+        videos = sns_info.videos = [
+            shorten_url(video) if len(video) > 100 else video
+            for video in sns_info.videos
+        ]
+
         if videos and len(videos) > 0:
             await ctx.followup.send(content="\n".join(sns_info.videos))

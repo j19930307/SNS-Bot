@@ -1,36 +1,15 @@
+import json
 import re
 from datetime import datetime
-import requests
-import jmespath
-from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
-from sns_info import SnsInfo, Profile
-import json
 from typing import Dict
 from urllib.parse import quote
+
 import httpx
+import jmespath
+import requests
+from bs4 import BeautifulSoup
 
-
-def shorten_url(long_url):
-    try:
-        # 嘗試使用 is.gd
-        response = requests.get("https://is.gd/create.php", params={"format": "simple", "url": long_url}, timeout=5)
-        if response.ok and response.text.startswith("http"):
-            return response.text
-    except Exception:
-        pass
-
-    try:
-        # 嘗試使用 CleanURI
-        response = requests.post("https://cleanuri.com/api/v1/shorten", data={"url": long_url}, timeout=5)
-        if response.ok:
-            result = response.json()
-            if "result_url" in result:
-                return result["result_url"]
-    except Exception:
-        pass
-
-    return None  # 如果全部失敗則回傳 None
+from sns_info import SnsInfo, Profile
 
 
 def parse_post(data: Dict) -> Dict:
@@ -68,10 +47,10 @@ def fetch_data_from_graphql(url):
     videos_url = []
 
     if post_dict["is_video"]:
-        videos_url.append(shorten_url(post_dict["video_url"]))
+        videos_url.append(post_dict["video_url"])
     else:
         images_url = post_dict["images_url"]
-        videos_url = [shorten_url(video_url) for video_url in post_dict["videos_url"]]
+        videos_url = post_dict["videos_url"]
 
     return SnsInfo(post_link=url,
                    profile=Profile(name=f"{post_dict['username']}",
