@@ -1,7 +1,7 @@
 from discord import Embed, message
-from discord.ext.bridge import Context
 
 from sns_info import SnsInfo
+from utils.url_utils import shorten_url
 
 DOMAIN_TWITTER = "twitter.com"
 DOMAIN_X = "x.com"
@@ -33,11 +33,19 @@ def post_source(url: str):
 def generate_embeds(username: str, sns_info: SnsInfo):
     embeds = []
     source = post_source(sns_info.post_link)
+    description = sns_info.content[:2048]
+
+    # 將過長的圖片連結替換成短網址
+    sns_info.images = [
+        shorten_url(image) if len(image) > 100 else image
+        for image in sns_info.images
+    ]
+
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
     for index, image_url in enumerate(sns_info.images[slice(4)]):
         if index == 0:
             embed = (
-                Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link,
+                Embed(title=sns_info.title, description=description, url=sns_info.post_link,
                       timestamp=sns_info.timestamp).set_author(
                     name=sns_info.profile.name, icon_url=sns_info.profile.url)
                 .set_image(url=image_url))
@@ -51,7 +59,7 @@ def generate_embeds(username: str, sns_info: SnsInfo):
                           .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
                           .set_image(url=image_url))
     else:
-        embed = Embed(title=sns_info.title, description=sns_info.content, url=sns_info.post_link,
+        embed = Embed(title=sns_info.title, description=description, url=sns_info.post_link,
                       timestamp=sns_info.timestamp).set_author(
             name=sns_info.profile.name, icon_url=sns_info.profile.url)
         if username is not None and username != "":
@@ -72,11 +80,3 @@ def mentions(message: message, bot_id: int):
                 if member.id == bot_id:
                     return True
     return False
-
-
-async def send_message(ctx: Context, sns_info: SnsInfo):
-    print(f"訊息內容:\n{sns_info}")
-    await ctx.followup.send(content=sns_info.post_link, embeds=generate_embeds("", sns_info))
-    videos = sns_info.videos
-    if videos is not None and len(videos) > 0:
-        await ctx.followup.send(content="\n".join(sns_info.videos))

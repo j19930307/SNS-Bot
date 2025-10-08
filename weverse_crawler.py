@@ -54,5 +54,5 @@ def fetch_data(url: str):
         post_link=url,
         profile=Profile(name=author_name, url=avatar_url),
         content=post_text,
-        images=image_urls,
+        images=image_urls
     )
