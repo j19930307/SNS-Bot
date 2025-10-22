@@ -33,7 +33,10 @@ def post_source(url: str):
 def generate_embeds(username: str, sns_info: SnsInfo):
     embeds = []
     source = post_source(sns_info.post_link)
-    description = sns_info.content[:2048]
+    if sns_info.content is not None:
+        description = sns_info.content[:2048]
+    else:
+        description = ""
 
     # 將過長的圖片連結替換成短網址
     sns_info.images = [
