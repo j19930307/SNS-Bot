@@ -34,7 +34,7 @@ def generate_embeds(username: str, sns_info: SnsInfo):
     embeds = []
     source = post_source(sns_info.post_link)
     if sns_info.content is not None:
-        description = sns_info.content[:2048]
+        description = sns_info.content[:1000]
     else:
         description = ""
 
