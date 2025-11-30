@@ -35,7 +35,7 @@ class PreviewService:
                 await self._preview_instagram(ctx, url)
             elif domain == 'threads.com':
                 await self._preview_threads(ctx, url)
-            elif domain == 'berriz.in':
+            elif domain == 'link.berriz.in':
                 await self._preview_berriz(ctx, url)
             elif "story/feed" in url:
                 await self._preview_bstage(ctx, url)
