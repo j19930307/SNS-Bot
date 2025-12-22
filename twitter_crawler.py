@@ -13,12 +13,12 @@ from tweety import Twitter
 from sns_info import SnsInfo, Profile
 
 
-def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo|None:
+def fetch_data_from_fixtwitter(tweet_id: str) -> SnsInfo|None:
     ua = UserAgent()
     user_agent = ua.random
     headers = {'user-agent': user_agent}
 
-    data = requests.get(headers=headers, url=f"https://api.fxtwitter.com/{screen_name}/status/{tweet_id}")
+    data = requests.get(headers=headers, url=f"https://api.fxtwitter.com/status/{tweet_id}")
     tweet_dict = json.loads(data.text)
 
     photos_url = []
@@ -28,6 +28,7 @@ def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo|None:
         tweet = tweet_dict["tweet"]
         author = tweet["author"]
         author_name = author["name"]
+        author_screen_name = author["screen_name"]
         author_avatar_url = author["avatar_url"]
         tweet_content = tweet["text"]
         created_timestamp_in_seconds = int(tweet["created_timestamp"])
@@ -39,8 +40,8 @@ def fetch_data_from_fixtwitter(screen_name: str, tweet_id: str) -> SnsInfo|None:
             videos = media.get("videos")
             if videos is not None:
                 videos_url = [video["url"] for video in videos]
-        return SnsInfo(post_link=f"https://x.com/{screen_name}/status/{tweet_id}",
-                       profile=Profile(name=f"{author_name} (@{screen_name})", url=author_avatar_url),
+        return SnsInfo(post_link=f"https://x.com/{author_screen_name}/status/{tweet_id}",
+                       profile=Profile(name=f"{author_name} (@{author_screen_name})", url=author_avatar_url),
                        content=tweet_content, images=photos_url, videos=videos_url,
                        timestamp=datetime.fromtimestamp(created_timestamp_in_seconds))
     return None
@@ -147,18 +148,18 @@ def fetch_data_from_browser(url: str):
 
 
 def fetch_data(url: str):
-    match = re.match("https://(twitter|x).com/(.+)/status/(\\d+)", url)
+    match = re.match("https://(twitter|x).com/.+/status/(\\d+)", url)
     if not match:
         return None
 
-    screen_name = match.group(2)
-    tweet_id = match.group(3)
+    tweet_id = match.group(2)
 
-    sns_info = fetch_data_from_fixtwitter(screen_name, tweet_id)
+    sns_info = fetch_data_from_fixtwitter(tweet_id)
     if sns_info is not None:
         return sns_info
 
     sns_info = fetch_data_from_browser(url)
     return sns_info
 
-# fetch_data_from_browser("https://x.com/STAYC_official/status/1940759042483486882")
+if __name__ == "__main__":
+    print(fetch_data("https://x.com/i/status/2002559648092848221"))
