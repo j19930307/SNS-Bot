@@ -71,7 +71,7 @@ class BstageBot:
                 print(f"有 {post_count} 則發文")
                 for sns_info in reversed(sns_info_list):
                     channel = self.__bot.get_channel(discord_channel_id)
-                    await channel.send(sns_info.post_link, embeds=discord_bot.generate_embeds("", sns_info))
+                    await channel.send(sns_info.post_link, embeds=discord_bot.generate_embeds(sns_info))
                     videos = sns_info.videos
                     if videos is not None and len(videos) > 0:
                         await channel.send(content="\n".join(sns_info.videos))

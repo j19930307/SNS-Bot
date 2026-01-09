@@ -122,7 +122,7 @@ class PreviewService:
     async def _send_preview(self, ctx, sns_info):
         """發送預覽訊息"""
         print(f"訊息內容:\n{sns_info}")
-        await ctx.followup.send(sns_info.post_link, embeds=discord_bot.generate_embeds("", sns_info))
+        await ctx.followup.send(sns_info.post_link, embeds=discord_bot.generate_embeds(sns_info))
 
         videos = [
             shorten_url(video) if len(video) > 100 else video

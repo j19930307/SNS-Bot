@@ -1,7 +1,6 @@
 from discord import Embed, message
 
 from sns_info import SnsInfo
-from utils.url_utils import shorten_url
 
 DOMAIN_TWITTER = "twitter.com"
 DOMAIN_X = "x.com"
@@ -30,46 +29,51 @@ def post_source(url: str):
         return "b.stage", "https://i.imgur.com/xekJ8pd.png"
 
 
-def generate_embeds(username: str, sns_info: SnsInfo):
-    embeds = []
+def build_base_embed(
+    *,
+    sns_info: SnsInfo,
+    description: str,
+    source: tuple[str, str] | None
+):
+    embed = Embed(
+        title=sns_info.title,
+        description=description,
+        url=sns_info.post_link,
+        timestamp=sns_info.timestamp
+    ).set_author(
+        name=sns_info.profile.name,
+        icon_url=sns_info.profile.url
+    )
+
+    if source:
+        embed.set_footer(text=source[0], icon_url=source[1])
+
+    return embed
+
+
+def generate_embeds(sns_info: SnsInfo):
     source = post_source(sns_info.post_link)
-    if sns_info.content is not None:
-        description = sns_info.content[:1000]
-    else:
-        description = ""
+    description = (sns_info.content or "")[:4096]
+    images = sns_info.images[:4]
 
-    # 將過長的圖片連結替換成短網址
-    sns_info.images = [
-        shorten_url(image) if len(image) > 100 else image
-        for image in sns_info.images
-    ]
+    def base():
+        return build_base_embed(
+            sns_info=sns_info,
+            description=description,
+            source=source
+        )
 
-    # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張以下的合併在一個區塊
-    for index, image_url in enumerate(sns_info.images[slice(4)]):
-        if index == 0:
-            embed = (
-                Embed(title=sns_info.title, description=description, url=sns_info.post_link,
-                      timestamp=sns_info.timestamp).set_author(
-                    name=sns_info.profile.name, icon_url=sns_info.profile.url)
-                .set_image(url=image_url))
-            if username is not None and username != "":
-                embed.insert_field_at(index=0, name="使用者", value=username)
-            if source is not None:
-                embed.set_footer(text=post_source(sns_info.post_link)[0], icon_url=post_source(sns_info.post_link)[1])
-            embeds.append(embed)
-        else:
-            embeds.append(Embed(url=sns_info.post_link)
-                          .set_author(name=sns_info.profile.name, url=sns_info.profile.url)
-                          .set_image(url=image_url))
-    else:
-        embed = Embed(title=sns_info.title, description=description, url=sns_info.post_link,
-                      timestamp=sns_info.timestamp).set_author(
-            name=sns_info.profile.name, icon_url=sns_info.profile.url)
-        if username is not None and username != "":
-            embed.insert_field_at(index=0, name="使用者", value=username)
-        if source is not None:
-            embed.set_footer(text=post_source(sns_info.post_link)[0], icon_url=post_source(sns_info.post_link)[1])
-        embeds.append(embed)
+    if not images:
+        return [base()]
+
+    embeds = [base().set_image(url=images[0])]
+
+    # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張合併在一個區塊
+    for image_url in images[1:]:
+        embeds.append(
+            Embed(url=sns_info.post_link)
+            .set_image(url=image_url)
+        )
 
     return embeds
 
