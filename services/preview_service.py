@@ -72,7 +72,7 @@ class PreviewService:
 
     async def _preview_instagram(self, ctx, url: str):
         """預覽 Instagram 內容"""
-        match = re.search(r'(https://www.instagram.com/(p|reel|stories)/[^?]+)', url)
+        match = re.search(r'(https://www.instagram.com/(p|reel|reels|stories)/[^?]+)', url)
 
         if match:
             instagram_url = match.group(0)

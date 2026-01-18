@@ -32,7 +32,7 @@ def parse_post(data: Dict) -> Dict:
 
 
 def fetch_data_from_graphql(url):
-    pattern = r"/(reel|p)/([^/]+)/?"
+    pattern = r"/(reel|reels|p)/([^/]+)/?"
     match = re.search(pattern, url)
 
     if not match:
