@@ -90,7 +90,7 @@ class PreviewService:
     async def _preview_threads(self, ctx, url: str):
         """預覽 Threads 內容"""
         import threads_crawler
-        sns_info, share_info = threads_crawler.fetch_data_from_browser(url)
+        sns_info, share_info = await threads_crawler.fetch_data_from_browser(url)
 
         if sns_info:
             await self._send_preview(ctx, sns_info)

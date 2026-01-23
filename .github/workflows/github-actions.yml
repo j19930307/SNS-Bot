@@ -30,6 +30,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+
     - name: Make envfile
       uses: SpicyPizza/create-envfile@v2.0
       with:
