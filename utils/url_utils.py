@@ -37,23 +37,27 @@ def convert_to_custom_instagram_url(link: str) -> str:
         return modified_url
     return link
 
-def shorten_url(long_url):
-    try:
-        # 嘗試使用 is.gd
-        response = requests.get("https://is.gd/create.php", params={"format": "simple", "url": long_url}, timeout=5)
-        if response.ok and response.text.startswith("http"):
-            return response.text
-    except Exception:
-        pass
 
-    try:
-        # 嘗試使用 CleanURI
-        response = requests.post("https://cleanuri.com/api/v1/shorten", data={"url": long_url}, timeout=5)
-        if response.ok:
-            result = response.json()
-            if "result_url" in result:
-                return result["result_url"]
-    except Exception:
-        pass
+def shorten_url(original_url: str) -> str:
+    providers = [
+        "https://is.gd/create.php",
+        "https://v.gd/create.php"
+    ]
 
-    return None  # 如果全部失敗則回傳 None
+    for endpoint in providers:
+        try:
+            response = requests.get(
+                endpoint,
+                params={
+                    "format": "simple",
+                    "url": original_url,
+                },
+                timeout=5,
+            )
+            if response.ok and response.text.startswith("http"):
+                return response.text.strip()
+        except Exception:
+            continue
+
+    # 全部失敗就回傳原始 URL
+    return original_url
