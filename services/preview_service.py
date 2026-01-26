@@ -56,7 +56,11 @@ class PreviewService:
 
             import twitter_crawler
             sns_info = twitter_crawler.fetch_data(tweet_url)
-            await self._send_preview(ctx, sns_info)
+            # 如果只有影片，則改為 fixvx.com
+            if len(sns_info.images) == 0 and len(sns_info.videos) == 1:
+                await ctx.followup.send(url.replace("x.com", "fixvx.com"))
+            else:
+                await self._send_preview(ctx, sns_info)
 
     async def _preview_weverse(self, ctx, url: str):
         """預覽 Weverse 內容"""
