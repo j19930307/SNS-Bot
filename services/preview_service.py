@@ -71,7 +71,7 @@ class PreviewService:
             print(f"提取的 Weverse 連結: {weverse_url}")
 
             import weverse_crawler
-            sns_info = weverse_crawler.fetch_data(weverse_url)
+            sns_info = await weverse_crawler.fetch_data(weverse_url)
             await self._send_preview(ctx, sns_info)
 
     async def _preview_instagram(self, ctx, url: str):

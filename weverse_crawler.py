@@ -1,28 +1,56 @@
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver import ChromeOptions
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
+from playwright.async_api import async_playwright
 
 from sns_info import SnsInfo, Profile
 
 
-def fetch_data(url: str):
-    options = ChromeOptions()
-    options.add_argument("--start-maximized")
-    options.add_argument("--headless")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    driver = webdriver.Chrome(options=options)
-    driver.get(url)
+async def fetch_data(url: str) -> SnsInfo:
+    """
+    使用 Playwright 非同步爬取 Weverse 貼文資料
 
-    WebDriverWait(driver, 30, 1).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "WeverseViewer"))
-    )
+    Args:
+        url: Weverse 貼文網址
 
-    html = driver.page_source
+    Returns:
+        SnsInfo 物件,包含貼文資訊
+    """
+    async with async_playwright() as p:
+        # 啟動瀏覽器
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                '--no-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+            ]
+        )
+
+        # 創建上下文
+        context = await browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        )
+
+        # 創建頁面
+        page = await context.new_page()
+
+        try:
+            # 訪問頁面
+            await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+
+            # 等待關鍵元素載入
+            await page.wait_for_selector('.WeverseViewer', timeout=30000)
+
+            # 獲取頁面 HTML
+            html = await page.content()
+
+        finally:
+            # 確保瀏覽器關閉
+            await browser.close()
+
+    # 使用 BeautifulSoup 解析 HTML
     soup = BeautifulSoup(html, "lxml")
 
     # 發文者頭像
@@ -56,3 +84,24 @@ def fetch_data(url: str):
         content=post_text,
         images=image_urls
     )
+
+
+# 測試用
+if __name__ == "__main__":
+    import asyncio
+
+    # 測試網址
+    test_url = "https://weverse.io/stayc/artist/2-169128050"
+
+
+    async def main():
+        print("🚀 開始爬取 Weverse 貼文")
+        try:
+            result = await fetch_data(test_url)
+            print("\n✅ 成功爬取資料:")
+            print(result)
+        except Exception as e:
+            print(f"\n❌ 爬取失敗: {e}")
+
+
+    asyncio.run(main())
