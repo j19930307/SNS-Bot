@@ -2,8 +2,9 @@
 實用工具指令模組
 包含預覽連結、時間戳等功能
 """
-import re
 import datetime
+import re
+
 import pytz
 from discord import Option, Embed
 
@@ -16,8 +17,11 @@ def setup_utility_commands(bot):
     preview_service = PreviewService(bot)
 
     @bot.slash_command(description="輸入網址產生預覽訊息 (支援網站: X, Weverse, Instagram)")
-    async def preview(ctx, link: Option(str, "請輸入連結", required=True)):
-        await preview_service.generate_preview(ctx, link)
+    async def preview(
+            ctx,
+            link: Option(str, "請輸入連結", required=True),
+            show_all: Option(bool, "顯示所有圖片和影片", default=False)
+    ): await preview_service.generate_preview(ctx, link, show_all)
 
     @bot.slash_command(description="時間戳指示符")
     async def hammertime(ctx, time: Option(str, "請輸入時間 (格式：年/月/日 時:分:秒)", required=True)):

@@ -51,10 +51,10 @@ def build_base_embed(
     return embed
 
 
-def generate_embeds(sns_info: SnsInfo):
+def generate_embeds(sns_info: SnsInfo, show_all: bool = False):
     source = post_source(sns_info.post_link)
     description = (sns_info.content or "")[:4096]
-    images = sns_info.images[:4]
+    images = sns_info.images
 
     def base():
         return build_base_embed(
@@ -63,13 +63,16 @@ def generate_embeds(sns_info: SnsInfo):
             source=source
         )
 
+    if show_all:
+        return [base()]
+
     if not images:
         return [base()]
 
     embeds = [base().set_image(url=images[0])]
 
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張合併在一個區塊
-    for image_url in images[1:]:
+    for image_url in images[1:4]:
         embeds.append(
             Embed(url=sns_info.post_link)
             .set_image(url=image_url)

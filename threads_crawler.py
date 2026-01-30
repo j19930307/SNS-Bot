@@ -44,9 +44,10 @@ def parse_thread(data: Dict) -> Dict:
         data
     )
 
-    all_images, all_videos = extract_all_media(result)
+    all_images, all_videos, all_attachments = extract_all_media(result)
     result["all_images"] = all_images
     result["all_videos"] = all_videos
+    result["all_attachments"] = all_attachments
     result["url"] = f"https://www.threads.com/@{result['username']}/post/{result['code']}"
 
     print(result)
@@ -56,6 +57,7 @@ def parse_thread(data: Dict) -> Dict:
 def extract_all_media(result):
     all_images = []
     all_videos = []
+    all_attachments = []
 
     media_type = result.get("media_type")
 
@@ -89,9 +91,9 @@ def extract_all_media(result):
                     else:
                         all_images.append(media["image_versions2"]["candidates"][0]["url"])
         elif result.get("attachment"):
-            all_videos.append(extract_original_url(result["attachment"]))
+            all_attachments.append(extract_original_url(result["attachment"]))
 
-    return all_images, all_videos
+    return all_images, all_videos, all_attachments
 
 
 def extract_original_url(threads_url: str) -> str:
@@ -227,6 +229,7 @@ def convert_to_sns_info(thread: Dict) -> SnsInfo:
         content=thread["text"],
         images=(thread.get("all_images") or []),
         videos=(thread.get("all_videos") or []),
+        attachments=(thread.get("all_attachments") or []),
         timestamp=datetime.fromtimestamp(thread["published_on"])
     )
 
