@@ -7,9 +7,14 @@ import re
 
 import aiohttp
 import discord
+from PIL import Image
+from pillow_heif import register_heif_opener
 
 import discord_bot
 from utils.url_utils import extract_domain, convert_to_custom_instagram_url, shorten_url
+
+# 註冊 HEIF/HEIC 支援
+register_heif_opener()
 
 
 class PreviewService:
@@ -125,6 +130,33 @@ class PreviewService:
         else:
             await ctx.followup.send("資料解析失敗", ephemeral=True)
 
+    def _convert_heic_to_jpg(self, data: bytes, filename: str) -> tuple[io.BytesIO, str]:
+        """將 HEIC 圖片轉換為 JPG 格式"""
+        try:
+            # 嘗試打開圖片
+            image = Image.open(io.BytesIO(data))
+
+            # 轉換為 RGB（JPG 不支援透明度）
+            if image.mode in ('RGBA', 'LA', 'P'):
+                rgb_image = Image.new('RGB', image.size, (255, 255, 255))
+                rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                image = rgb_image
+            elif image.mode != 'RGB':
+                image = image.convert('RGB')
+
+            # 將圖片保存為 JPG
+            output = io.BytesIO()
+            image.save(output, format='JPEG', quality=100)
+            output.seek(0)
+
+            # 修改檔名
+            new_filename = filename.rsplit('.', 1)[0] + '.jpg'
+
+            return output, new_filename
+        except Exception as e:
+            print(f"轉換 HEIC 失敗: {e}")
+            return io.BytesIO(data), filename
+
     async def _send_preview(self, ctx, sns_info, show_all: bool):
         """發送預覽訊息"""
         print(f"訊息內容:\n{sns_info}")
@@ -143,7 +175,13 @@ class PreviewService:
                                     filename = url.split("/")[-1].split("?")[0]
                                     if not filename:
                                         filename = "unknown_file"
-                                    files.append(discord.File(io.BytesIO(data), filename=filename))
+
+                                    # 檢查是否為 HEIC 格式
+                                    if filename.lower().endswith(('.heic', '.heif')):
+                                        file_data, filename = self._convert_heic_to_jpg(data, filename)
+                                        files.append(discord.File(file_data, filename=filename))
+                                    else:
+                                        files.append(discord.File(io.BytesIO(data), filename=filename))
                         except Exception as e:
                             print(f"下載檔案失敗 {url}: {e}")
 
