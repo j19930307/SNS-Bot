@@ -5,10 +5,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse, parse_qs, unquote
+import base64
 
 import jmespath
 from nested_lookup import nested_lookup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+import aiohttp
 
 from sns_info import SnsInfo, Profile
 
@@ -103,6 +105,57 @@ def extract_original_url(threads_url: str) -> str:
     return unquote(query_params.get("u", [""])[0])
 
 
+async def upload_to_imgur(image_path: str) -> Optional[str]:
+    """
+    上傳圖片到 Imgur
+
+    Args:
+        image_path: 圖片檔案路徑
+
+    Returns:
+        圖片 URL，失敗時返回 None
+    """
+    try:
+        # Imgur 匿名上傳 API (無需註冊)
+        # 這是 Imgur 的公開 Client ID，僅供匿名上傳使用
+        client_id = "546c25a59c58ad7"
+
+        with open(image_path, 'rb') as f:
+            image_data = base64.b64encode(f.read()).decode('utf-8')
+
+        headers = {
+            'Authorization': f'Client-ID {client_id}'
+        }
+
+        data = {
+            'image': image_data,
+            'type': 'base64'
+        }
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    'https://api.imgur.com/3/image',
+                    headers=headers,
+                    data=data,
+                    timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    if result.get('success'):
+                        image_url = result['data']['link']
+                        print(f"☁️  圖片已上傳到 Imgur: {image_url}")
+                        return image_url
+                    else:
+                        print(f"❌ Imgur 上傳失敗: {result}")
+                else:
+                    print(f"❌ Imgur 上傳失敗，狀態碼: {response.status}")
+
+    except Exception as e:
+        print(f"❌ 上傳圖片到 Imgur 時發生錯誤: {e}")
+
+    return None
+
+
 async def scrape_thread(url: str, max_retries: int = 1) -> dict:
     """
     爬取 Threads 貼文資料，增加錯誤處理和重試機制
@@ -130,6 +183,7 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
                 browser = await p.chromium.launch(headless=True)
                 page = await browser.new_page()
 
+                # 使用快速載入，只等待 DOM 載入完成
                 await page.goto(url, wait_until="domcontentloaded")
 
                 scripts = await page.locator("script[type='application/json']").all()
@@ -149,9 +203,6 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
                         print(f"⚠️  JSON 解析錯誤: {e}")
                         continue
 
-                # 立即關閉瀏覽器釋放資源
-                await browser.close()
-
                 if thread_items:
                     result = next(
                         (parse_thread(thread["post"])
@@ -164,12 +215,55 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
 
                     if result:
                         print("✅ 成功爬取資料")
+                        await browser.close()
                         return result
                     else:
                         print("⚠️  找不到匹配的貼文")
+                        await browser.close()
+                        # 不做截圖，直接返回空字典
 
                 else:
-                    print("⚠️  頁面中沒有找到 thread_items")
+                    print("⚠️  頁面中沒有找到 thread_items，擷取快照並上傳...")
+
+                    # 只有在這個情況下才做完整的頁面載入和截圖
+                    try:
+                        # 等待頁面完全載入
+                        await page.wait_for_load_state("networkidle", timeout=10000)
+                        await asyncio.sleep(2)
+
+                        # 取得頁面標題和 URL 確認頁面有載入
+                        page_title = await page.title()
+                        current_url = page.url
+                        print(f"📄 頁面標題: {page_title}")
+                        print(f"🔗 當前 URL: {current_url}")
+
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        screenshot_path = f"threads_screenshot_{timestamp}.png"
+                        html_path = f"threads_page_{timestamp}.html"
+
+                        # 儲存 HTML 內容
+                        html_content = await page.content()
+                        with open(html_path, 'w', encoding='utf-8') as f:
+                            f.write(html_content)
+                        print(f"💾 HTML 已儲存: {html_path}")
+
+                        # 截取完整頁面
+                        await page.screenshot(path=screenshot_path, full_page=True)
+                        print(f"📸 快照已儲存: {screenshot_path}")
+
+                        # 上傳到 Imgur
+                        imgur_url = await upload_to_imgur(screenshot_path)
+
+                        await browser.close()
+
+                        if imgur_url:
+                            print(f"🔗 快照雲端連結: {imgur_url}")
+                            # 將 URL 存入結果中，方便後續使用
+                            return {"error": "no_thread_items", "screenshot_url": imgur_url, "url": url,
+                                    "html_path": html_path}
+                    except Exception as screenshot_error:
+                        print(f"❌ 截圖過程發生錯誤: {screenshot_error}")
+                        await browser.close()
 
             # 如果執行到這裡表示沒有返回資料，但也沒有錯誤，等待後重試
             if attempt < max_retries - 1:
@@ -209,6 +303,13 @@ async def fetch_data_from_browser(url: str) -> Tuple[Optional[SnsInfo], Optional
         print("❌ 無法爬取主貼文")
         return None, None
 
+    # 檢查是否有錯誤（只有 no_thread_items 錯誤會有 screenshot_url）
+    if main_post.get("error"):
+        print(f"❌ 爬取失敗，錯誤類型: {main_post['error']}")
+        if main_post.get("screenshot_url"):
+            print(f"📸 錯誤快照: {main_post['screenshot_url']}")
+        return None, None
+
     quoted_post = None
     if main_post.get("share_info"):
         quoted = main_post["share_info"].get("quoted_post")
@@ -242,6 +343,7 @@ if __name__ == "__main__":
     print("🚀 開始爬取 Threads 貼文")
     print("=" * 60)
 
+
     async def main():
         sns_info, share_info = await fetch_data_from_browser(test_url)
 
@@ -254,5 +356,6 @@ if __name__ == "__main__":
         if share_info:
             print("\n✅ 引用貼文:")
             print(share_info)
+
 
     asyncio.run(main())
