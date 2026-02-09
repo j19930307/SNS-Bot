@@ -4,8 +4,6 @@ URL 相關工具函數
 import re
 from urllib.parse import urlparse, urlunparse
 
-import requests
-
 
 def extract_domain(url: str) -> str:
     """
@@ -38,13 +36,17 @@ def convert_to_custom_instagram_url(link: str) -> str:
     return link
 
 
+import requests
+
+
 def shorten_url(original_url: str) -> str:
-    providers = [
+    get_providers = [
         "https://is.gd/create.php",
-        "https://v.gd/create.php"
+        "https://v.gd/create.php",
     ]
 
-    for endpoint in providers:
+    # 1️⃣ is.gd / v.gd（GET, simple text）
+    for endpoint in get_providers:
         try:
             response = requests.get(
                 endpoint,
@@ -59,5 +61,20 @@ def shorten_url(original_url: str) -> str:
         except Exception:
             continue
 
-    # 全部失敗就回傳原始 URL
+    # 2️⃣ CleanURI（POST, JSON）
+    try:
+        response = requests.post(
+            "https://cleanuri.com/api/v1/shorten",
+            data={"url": original_url},
+            timeout=5,
+        )
+        if response.ok:
+            data = response.json()
+            short_url = data.get("result_url")
+            if short_url:
+                return short_url
+    except Exception:
+        pass
+
+    # 3️⃣ 全部失敗就回傳原始 URL
     return original_url
