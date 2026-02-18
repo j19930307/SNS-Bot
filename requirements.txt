@@ -14,5 +14,5 @@ jmespath==1.0.1
 nested_lookup==0.2.25
 parsel==1.10.0
 playwright==1.57.0
-pillow==12.1.0
+pillow==12.1.1
 pillow-heif==1.2.0
