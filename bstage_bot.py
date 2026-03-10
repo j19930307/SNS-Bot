@@ -11,7 +11,7 @@ from fake_useragent import UserAgent
 
 import discord_bot
 from firebase import Firebase
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 from sns_type import SnsType
 
 ua = UserAgent()
@@ -43,7 +43,7 @@ class BstageBot:
                                    url=f"https://{artist}.bstage.in/svc/home/api/v1/home/star?page=1&pageSize=10")
             data = json.loads(request.text)
 
-            sns_info_list = []
+            sns_post_list = []
             for item in data["feeds"]["items"]:
                 published_at_datetime = convert_to_datetime(item["publishedAt"])
                 if last_updated < published_at_datetime:
@@ -56,27 +56,27 @@ class BstageBot:
                             f"https://image.static.bstage.in/cdn-cgi/image/metadata=none/{artist}" + thumbnail["path"]
                             for thumbnail in item["video"]["thumbnailPaths"]]
                         videos.append(f"https://media.static.bstage.in/{artist}" + item["video"]["hlsPath"]["path"])
-                    sns_info = SnsInfo(
+                    sns_post = SnsPost(
                         post_link=f"https://{artist}.bstage.in/story/feed/{item['typeId']}",
-                        profile=Profile(item["author"]["nickname"], item["author"]["avatarImgPath"]),
-                        content=item["description"], images=images, videos=videos,
-                        timestamp=published_at_datetime)
-                    print(sns_info)
-                    sns_info_list.append(sns_info)
+                        author=Author(item["author"]["nickname"], item["author"]["avatarImgPath"]),
+                        text=item["description"], images=images, videos=videos,
+                        created_at=published_at_datetime)
+                    print(sns_post)
+                    sns_post_list.append(sns_post)
                 else:
                     break
 
-            post_count = len(sns_info_list)
+            post_count = len(sns_post_list)
             if post_count != 0:
                 print(f"有 {post_count} 則發文")
-                for sns_info in reversed(sns_info_list):
+                for sns_post in reversed(sns_post_list):
                     channel = self.__bot.get_channel(discord_channel_id)
-                    await channel.send(sns_info.post_link, embeds=discord_bot.generate_embeds(sns_info))
-                    videos = sns_info.videos
+                    await channel.send(sns_post.post_link, embeds=discord_bot.generate_embeds(sns_post))
+                    videos = sns_post.videos
                     if videos is not None and len(videos) > 0:
-                        await channel.send(content="\n".join(sns_info.videos))
+                        await channel.send(content="\n".join(sns_post.videos))
                 # 儲存最新發文時間
-                updated_at = max([sns_info.timestamp for sns_info in sns_info_list])
+                updated_at = max([sns_post.created_at for sns_post in sns_post_list])
                 print(f"更新最後發文時間: {updated_at}")
                 self.__firestore.set_updated_at(SnsType.BSTAGE, artist, updated_at)
             else:

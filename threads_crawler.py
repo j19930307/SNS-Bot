@@ -1,18 +1,18 @@
 import asyncio
+import base64
 import json
 import re
 from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse, parse_qs, unquote
-import base64
 
+import aiohttp
 import jmespath
 from nested_lookup import nested_lookup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
-import aiohttp
 
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 
 
 class MediaType(Enum):
@@ -291,9 +291,9 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
     return {}
 
 
-async def fetch_data_from_browser(url: str) -> Tuple[Optional[SnsInfo], Optional[SnsInfo]]:
+async def fetch_data_from_browser(url: str) -> Tuple[Optional[SnsPost], Optional[SnsPost]]:
     """
-    從瀏覽器爬取資料並轉換為 SnsInfo
+    從瀏覽器爬取資料並轉換為 SnsPost
 
     Returns:
         (主貼文, 引用貼文) 的 tuple，失敗時返回 (None, None)
@@ -315,23 +315,23 @@ async def fetch_data_from_browser(url: str) -> Tuple[Optional[SnsInfo], Optional
         quoted = main_post["share_info"].get("quoted_post")
         if quoted and quoted.get("code"):
             try:
-                quoted_post = convert_to_sns_info(parse_thread(quoted))
+                quoted_post = convert_to_sns_post(parse_thread(quoted))
             except Exception as e:
                 print(f"⚠️  處理引用貼文時發生錯誤: {e}")
 
-    return convert_to_sns_info(main_post), quoted_post
+    return convert_to_sns_post(main_post), quoted_post
 
 
-def convert_to_sns_info(thread: Dict) -> SnsInfo:
-    """將 thread 資料轉換為 SnsInfo 物件"""
-    return SnsInfo(
+def convert_to_sns_post(thread: Dict) -> SnsPost:
+    """將 thread 資料轉換為 SnsPost 物件"""
+    return SnsPost(
         post_link=thread["url"],
-        profile=Profile(name=thread["username"], url=thread["user_pic"]),
-        content=thread["text"],
+        author=Author(name=thread["username"], url=thread["user_pic"]),
+        text=thread["text"],
         images=(thread.get("all_images") or []),
         videos=(thread.get("all_videos") or []),
-        attachments=(thread.get("all_attachments") or []),
-        timestamp=datetime.fromtimestamp(thread["published_on"])
+        links=(thread.get("all_attachments") or []),
+        created_at=datetime.fromtimestamp(thread["published_on"])
     )
 
 
@@ -345,11 +345,11 @@ if __name__ == "__main__":
 
 
     async def main():
-        sns_info, share_info = await fetch_data_from_browser(test_url)
+        sns_post, share_info = await fetch_data_from_browser(test_url)
 
-        if sns_info:
+        if sns_post:
             print("\n✅ 主貼文:")
-            print(sns_info)
+            print(sns_post)
         else:
             print("\n❌ 無法取得主貼文")
 

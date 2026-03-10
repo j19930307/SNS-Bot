@@ -10,10 +10,10 @@ from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from tweety import Twitter
 
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 
 
-def fetch_data_from_fixtwitter(tweet_id: str) -> SnsInfo|None:
+def fetch_data_from_fixtwitter(tweet_id: str) -> SnsPost | None:
     ua = UserAgent()
     user_agent = ua.random
     headers = {'user-agent': user_agent}
@@ -40,10 +40,10 @@ def fetch_data_from_fixtwitter(tweet_id: str) -> SnsInfo|None:
             videos = media.get("videos")
             if videos is not None:
                 videos_url = [video["url"] for video in videos]
-        return SnsInfo(post_link=f"https://x.com/{author_screen_name}/status/{tweet_id}",
-                       profile=Profile(name=f"{author_name} (@{author_screen_name})", url=author_avatar_url),
-                       content=tweet_content, images=photos_url, videos=videos_url,
-                       timestamp=datetime.fromtimestamp(created_timestamp_in_seconds))
+        return SnsPost(post_link=f"https://x.com/{author_screen_name}/status/{tweet_id}",
+                       author=Author(name=f"{author_name} (@{author_screen_name})", url=author_avatar_url),
+                       text=tweet_content, images=photos_url, videos=videos_url,
+                       created_at=datetime.fromtimestamp(created_timestamp_in_seconds))
     return None
 
 
@@ -62,8 +62,8 @@ def fetch_data_from_tweety(url: str):
             image_url = media.media_url_https + ":orig"
             images.append(image_url)
 
-    return SnsInfo(post_link=url, profile=Profile(f"{tweet.author.name} (@{tweet.author.username})",
-                                                  tweet.author.profile_image_url_https), content=tweet.text,
+    return SnsPost(post_link=url, author=Author(f"{tweet.author.name} (@{tweet.author.username})",
+                                                tweet.author.profile_image_url_https), text=tweet.text,
                    images=images, videos=videos)
 
 
@@ -143,8 +143,8 @@ def fetch_data_from_browser(url: str):
     else:
         print("Div with specified class not found.")
 
-    return SnsInfo(post_link=url, profile=Profile(f"{profile_name} (@{twitter_id})", profile_image),
-                   content=description, images=images)
+    return SnsPost(post_link=url, author=Author(f"{profile_name} (@{twitter_id})", profile_image),
+                   text=description, images=images)
 
 
 def fetch_data(url: str):
@@ -154,12 +154,12 @@ def fetch_data(url: str):
 
     tweet_id = match.group(2)
 
-    sns_info = fetch_data_from_fixtwitter(tweet_id)
-    if sns_info is not None:
-        return sns_info
+    sns_post = fetch_data_from_fixtwitter(tweet_id)
+    if sns_post is not None:
+        return sns_post
 
-    sns_info = fetch_data_from_browser(url)
-    return sns_info
+    sns_post = fetch_data_from_browser(url)
+    return sns_post
 
 if __name__ == "__main__":
     print(fetch_data("https://x.com/i/status/2002559648092848221"))

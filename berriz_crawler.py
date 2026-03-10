@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 
 pattern = re.compile(r'/([^/]+)/board/([^/]+)/post/([^/]+)/')
 
@@ -67,12 +67,12 @@ def get_post_info(board_id: str, community_id: str, group_name: str, post_id: st
         except ValueError:
             dt = datetime.now(timezone.utc)
 
-        return SnsInfo(
+        return SnsPost(
             post_link=f"https://berriz.in/en/{group_name}/board/{board_id}/post/{post_id}/",
-            profile=Profile(name=writer_name, url=writer_image),
-            content=body,
+            author=Author(name=writer_name, url=writer_image),
+            text=body,
             images=image_urls,
-            timestamp=dt
+            created_at=dt
         )
     except Exception as e:
         print(f"Error fetching post info: {e}")

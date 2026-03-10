@@ -1,15 +1,15 @@
-import re
 import json
-import requests
-import jmespath
-from urllib.parse import urlparse
-from typing import Dict, List, Optional
-from dataclasses import dataclass
+import re
 from datetime import datetime
+from typing import Dict, Optional
+from urllib.parse import urlparse
+
+import jmespath
+import requests
 from dateutil import parser
 from fake_useragent import UserAgent
 
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 
 
 def parse_post(data: Dict) -> Dict:
@@ -52,7 +52,7 @@ def extract_url_components(url: str) -> tuple[str, str, str]:
     raise ValueError(f"無法解析URL: {url}")
 
 
-def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsInfo]:
+def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsPost]:
     """從bstage平台抓取資料"""
     ua = UserAgent()
     headers = {'user-agent': ua.random}
@@ -90,16 +90,16 @@ def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsInfo]:
                     video_url = f"https://media.static.bstage.in/{artist}{post['video']}"
                     videos.append(video_url)
 
-                return SnsInfo(
+                return SnsPost(
                     post_link=f"https://{artist}.bstage.in/story/feed/{feed_id}",
-                    profile=Profile(
+                    author=Author(
                         name=post.get("author_name", ""),
                         url=post.get("author_image_url", "")
                     ),
-                    content=post.get("content", ""),
+                    text=post.get("content", ""),
                     images=images,
                     videos=videos,
-                    timestamp=parser.isoparse(post["published_at"]) if post.get("published_at") else datetime.now()
+                    created_at=parser.isoparse(post["published_at"]) if post.get("published_at") else datetime.now()
                 )
 
         print(f"在bstage中找不到feed_id: {feed_id}")
@@ -113,7 +113,7 @@ def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsInfo]:
         return None
 
 
-def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsInfo]:
+def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsPost]:
     """從mnetplus平台抓取資料"""
     ua = UserAgent()
     headers = {'user-agent': ua.random}
@@ -151,16 +151,16 @@ def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsInfo]:
                     video_url = f"https://media.static.bstage.in/{artist}{post['video']}"
                     videos.append(video_url)
 
-                return SnsInfo(
+                return SnsPost(
                     post_link=f"https://artist.mnetplus.world/main/stg/{artist}/story/feed/{feed_id}",
-                    profile=Profile(
+                    author=Author(
                         name=post.get("author_name", ""),
                         url=post.get("author_image_url", "")
                     ),
-                    content=post.get("content", ""),
+                    text=post.get("content", ""),
                     images=images,
                     videos=videos,
-                    timestamp=parser.isoparse(post["published_at"]) if post.get("published_at") else datetime.now()
+                    created_at=parser.isoparse(post["published_at"]) if post.get("published_at") else datetime.now()
                 )
 
         print(f"在mnetplus中找不到feed_id: {feed_id}")
@@ -174,7 +174,7 @@ def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsInfo]:
         return None
 
 
-def fetch_data(url: str) -> Optional[SnsInfo]:
+def fetch_data(url: str) -> Optional[SnsPost]:
     """主要函數：根據URL抓取資料"""
     try:
         artist, feed_id, platform = extract_url_components(url)
@@ -208,11 +208,11 @@ if __name__ == "__main__":
 
         result = fetch_data(url)
         if result:
-            print(f"作者: {result.profile.name}")
-            print(f"內容: {result.content}")
+            print(f"作者: {result.author.name}")
+            print(f"內容: {result.text}")
             print(f"圖片數量: {len(result.images)}")
             print(f"影片數量: {len(result.videos)}")
-            print(f"發布時間: {result.timestamp}")
+            print(f"發布時間: {result.created_at}")
             print(f"貼文連結: {result.post_link}")
         else:
             print("無法取得資料")

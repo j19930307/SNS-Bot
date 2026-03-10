@@ -3,10 +3,10 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 
 
-async def fetch_data(url: str) -> SnsInfo:
+async def fetch_data(url: str) -> SnsPost:
     """
     使用 Playwright 非同步爬取 Weverse 貼文資料
 
@@ -14,7 +14,7 @@ async def fetch_data(url: str) -> SnsInfo:
         url: Weverse 貼文網址
 
     Returns:
-        SnsInfo 物件,包含貼文資訊
+        SnsPost 物件,包含貼文資訊
     """
     async with async_playwright() as p:
         # 啟動瀏覽器
@@ -78,10 +78,10 @@ async def fetch_data(url: str) -> SnsInfo:
     # 去除網址 query 參數，保持乾淨
     image_urls = [urlparse(link)._replace(query="").geturl() for link in image_urls]
 
-    return SnsInfo(
+    return SnsPost(
         post_link=url,
-        profile=Profile(name=author_name, url=avatar_url),
-        content=post_text,
+        author=Author(name=author_name, url=avatar_url),
+        text=post_text,
         images=image_urls
     )
 

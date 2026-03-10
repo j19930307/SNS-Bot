@@ -9,7 +9,7 @@ import jmespath
 import requests
 from bs4 import BeautifulSoup
 
-from sns_info import SnsInfo, Profile
+from models.sns_post import SnsPost, Author
 
 
 def parse_post(data: Dict) -> Dict:
@@ -52,11 +52,11 @@ def fetch_data_from_graphql(url):
         images_url = post_dict["images_url"]
         videos_url = post_dict["videos_url"]
 
-    return SnsInfo(post_link=url,
-                   profile=Profile(name=f"{post_dict['username']}",
-                                   url=post_dict['profile_pic_url']),
-                   content=post_dict['captions'], images=images_url, videos=videos_url,
-                   timestamp=datetime.fromtimestamp(post_dict['taken_at']))
+    return SnsPost(post_link=url,
+                   author=Author(name=f"{post_dict['username']}",
+                                 url=post_dict['profile_pic_url']),
+                   text=post_dict['captions'], images=images_url, videos=videos_url,
+                   created_at=datetime.fromtimestamp(post_dict['taken_at']))
 
 
 def scrape_post_by_graphql(shortcode: str) -> Dict:

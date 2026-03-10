@@ -1,6 +1,6 @@
 from discord import Embed, message
 
-from sns_info import SnsInfo
+from models.sns_post import SnsPost
 
 DOMAIN_TWITTER = "twitter.com"
 DOMAIN_X = "x.com"
@@ -31,18 +31,18 @@ def post_source(url: str):
 
 def build_base_embed(
     *,
-    sns_info: SnsInfo,
+    sns_post: SnsPost,
     description: str,
     source: tuple[str, str] | None
 ):
     embed = Embed(
-        title=sns_info.title,
+        title=sns_post.title,
         description=description,
-        url=sns_info.post_link,
-        timestamp=sns_info.timestamp
+        url=sns_post.post_link,
+        timestamp=sns_post.created_at
     ).set_author(
-        name=sns_info.profile.name,
-        icon_url=sns_info.profile.url
+        name=sns_post.author.name,
+        icon_url=sns_post.author.url
     )
 
     if source:
@@ -51,14 +51,14 @@ def build_base_embed(
     return embed
 
 
-def generate_embeds(sns_info: SnsInfo, show_all: bool = False):
-    source = post_source(sns_info.post_link)
-    description = (sns_info.content or "")[:4096]
-    images = sns_info.images
+def generate_embeds(sns_post: SnsPost, show_all: bool = False):
+    source = post_source(sns_post.post_link)
+    description = (sns_post.text or "")[:4096]
+    images = sns_post.images
 
     def base():
         return build_base_embed(
-            sns_info=sns_info,
+            sns_post=sns_post,
             description=description,
             source=source
         )
@@ -74,7 +74,7 @@ def generate_embeds(sns_info: SnsInfo, show_all: bool = False):
     # 圖片訊息，Embed 的 url 如果一樣，最多可以 4 張合併在一個區塊
     for image_url in images[1:4]:
         embeds.append(
-            Embed(url=sns_info.post_link)
+            Embed(url=sns_post.post_link)
             .set_image(url=image_url)
         )
 
