@@ -24,33 +24,49 @@ class PreviewService:
         self.bot = bot
 
     async def generate_preview(self, ctx, url: str, show_all: bool = False):
-        """產生連結預覽"""
-        domain = extract_domain(url)
+        """產生連結預覽（支援多個網址）"""
+        # 使用正則表達式提取所有 URL（支援連續無空格的情況）
+        # 匹配 http:// 或 https:// 開頭，直到遇到下一個 http:// 或 https:// 或字串結尾
+        url_pattern = r'https?://(?:(?!https?://).)+?(?=https?://|$)'
+        urls = re.findall(url_pattern, url, re.DOTALL)
+        # 移除每個網址尾部的空白字元
+        urls = [u.strip() for u in urls if u.strip()]
 
-        if not domain:
-            await ctx.followup.send("無法識別的連結格式", ephemeral=True)
+        if not urls:
+            await ctx.followup.send("請提供至少一個有效的連結", ephemeral=True)
             return
 
         await ctx.defer()
 
-        try:
-            if domain in ['twitter.com', 'x.com']:
-                await self._preview_twitter(ctx, url, domain, show_all)
-            elif domain == 'weverse.io':
-                await self._preview_weverse(ctx, url, show_all)
-            elif domain == 'instagram.com':
-                await self._preview_instagram(ctx, url, show_all)
-            elif domain == 'threads.com':
-                await self._preview_threads(ctx, url, show_all)
-            elif domain == 'link.berriz.in':
-                await self._preview_berriz(ctx, url, show_all)
-            elif "story/feed" in url:
-                await self._preview_bstage(ctx, url, show_all)
-            else:
-                await ctx.followup.send("不支援的網站", ephemeral=True)
+        # 處理每個網址
+        for url_item in urls:
+            try:
+                await self._process_single_url(ctx, url_item, show_all)
+            except Exception as e:
+                await ctx.followup.send(f"預覽生成失敗 ({url_item}): {str(e)}", ephemeral=True)
 
-        except Exception as e:
-            await ctx.followup.send(f"預覽生成失敗: {str(e)}", ephemeral=True)
+    async def _process_single_url(self, ctx, url: str, show_all: bool):
+        """處理單一網址"""
+        domain = extract_domain(url)
+
+        if not domain:
+            await ctx.followup.send(f"無法識別的連結格式: {url}", ephemeral=True)
+            return
+
+        if domain in ['twitter.com', 'x.com']:
+            await self._preview_twitter(ctx, url, domain, show_all)
+        elif domain == 'weverse.io':
+            await self._preview_weverse(ctx, url, show_all)
+        elif domain == 'instagram.com':
+            await self._preview_instagram(ctx, url, show_all)
+        elif domain == 'threads.com':
+            await self._preview_threads(ctx, url, show_all)
+        elif domain == 'link.berriz.in':
+            await self._preview_berriz(ctx, url, show_all)
+        elif "story/feed" in url:
+            await self._preview_bstage(ctx, url, show_all)
+        else:
+            await ctx.followup.send(f"不支援的網站: {url}", ephemeral=True)
 
     async def _preview_twitter(self, ctx, url: str, domain: str, show_all: bool):
         """預覽 Twitter/X 內容"""

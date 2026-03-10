@@ -52,7 +52,7 @@ def setup_utility_commands(bot):
     @bot.slash_command(description="輸入網址產生預覽訊息 (支援網站: X, Weverse, Instagram)")
     async def preview(
             ctx,
-            link: Option(str, "請輸入連結", required=True),
+            link: Option(str, "請輸入連結（支援多個網址）", required=True),
             show_all: Option(bool, "顯示所有圖片和影片", default=False)
     ):
         await preview_service.generate_preview(ctx, link, show_all)
