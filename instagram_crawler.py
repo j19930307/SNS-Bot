@@ -13,7 +13,7 @@ from models.sns_post import SnsPost, Author
 
 
 def parse_post(data: Dict) -> Dict:
-    print("parsing post data {}", data['shortcode'])
+    print(f"parsing post data {data.get('shortcode')}")
     result = jmespath.search("""{
         id: id,
         shortcode: shortcode,
@@ -21,12 +21,12 @@ def parse_post(data: Dict) -> Dict:
         video_url: video_url,
         taken_at: taken_at_timestamp,
         is_video: is_video,
-        captions: edge_media_to_caption.edges[0].node.text
+        captions: edge_media_to_caption.edges[0].node.text,
         username: owner.username,
         full_name: owner.full_name,
         profile_pic_url: owner.profile_pic_url,
-        videos_url: edge_sidecar_to_children.edges[?is_video==true].node.video_url,
-        images_url: edge_sidecar_to_children.edges[?is_video==false].node.display_url
+        videos_url: edge_sidecar_to_children.edges[?node.is_video==`true`].node.video_url,
+        images_url: edge_sidecar_to_children.edges[?node.is_video==`false`].node.display_url
     }""", data)
     return result
 
