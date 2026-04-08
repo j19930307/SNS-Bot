@@ -9,8 +9,8 @@ from google.cloud import firestore
 
 import berriz_crawler
 import youtube_crawler
-from firebase import Firebase
 from sns_type import SnsType
+from utils.firebase import Firebase
 
 
 def setup_subscription_commands(bot: discord.Bot, firebase):
@@ -34,7 +34,7 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
 
     async def _get_bstage_subscribed_list(ctx: discord.AutocompleteContext):
         """取得 B.stage 訂閱清單（自動完成用）"""
-        tuple_list = firebase.get_subscribed_list_from_discord_id(SnsType.BSTAGE, str(ctx.interaction.channel.id))
+        tuple_list = await firebase.get_subscribed_list_from_discord_id(SnsType.BSTAGE, str(ctx.interaction.channel.id))
         return [OptionChoice(name=username, value=id) for (username, id) in tuple_list]
 
     @bot.slash_command(description="取消訂閱 B.stage 帳號通知")
@@ -56,7 +56,7 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
 
     async def _get_youtube_subscribed_list(ctx: discord.AutocompleteContext):
         """取得 YouTube 訂閱清單（自動完成用）"""
-        channel_list = firebase.get_youtube_subscribed_list_from_discord_id(str(ctx.interaction.channel.id))
+        channel_list = await firebase.get_youtube_subscribed_list_from_discord_id(str(ctx.interaction.channel.id))
         return [OptionChoice(name=id, value=id) for id in channel_list]
 
     @bot.slash_command(description="取消訂閱 YouTube 頻道影片通知")
@@ -73,7 +73,7 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
 
     async def _get_berriz_subscribed_list(ctx: discord.AutocompleteContext):
         """取得 Berriz 訂閱清單（自動完成用）"""
-        id_list = firebase.get_berriz_subscribed_list(str(ctx.interaction.channel.id))
+        id_list = await firebase.get_berriz_subscribed_list(str(ctx.interaction.channel.id))
         return [OptionChoice(name=id, value=id) for id in id_list]
 
     @bot.slash_command(description="取消訂閱 Berriz 帳號貼文通知")
@@ -87,10 +87,10 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
 async def _add_bstage_account(ctx, firebase, sns_type: SnsType, account: str):
     """新增 B.stage 帳號訂閱"""
     await ctx.defer()
-    if firebase.is_account_exists(sns_type, account):
+    if await firebase.is_account_exists(sns_type, account):
         await ctx.followup.send(f"{account} 已訂閱過")
     else:
-        firebase.add_account(
+        await firebase.add_account(
             sns_type,
             id=account,
             username=account,
@@ -103,7 +103,7 @@ async def _add_bstage_account(ctx, firebase, sns_type: SnsType, account: str):
 async def _add_youtube_account(ctx, firebase, handle: str):
     """新增 YouTube 頻道訂閱"""
     await ctx.defer()
-    if firebase.is_account_exists(SnsType.YOUTUBE, handle):
+    if await firebase.is_account_exists(SnsType.YOUTUBE, handle):
         await ctx.followup.send(f"{handle} 已訂閱過")
     else:
         channel_name = youtube_crawler.get_channel_name(handle)
@@ -124,7 +124,7 @@ async def _add_youtube_account(ctx, firebase, handle: str):
         latest_short_published_at = youtube_crawler.get_video_published_at(video_id=latest_short_id)
         latest_stream_published_at = youtube_crawler.get_video_published_at(video_id=latest_stream_id)
 
-        firebase.add_youtube_account(
+        await firebase.add_youtube_account(
             handle=handle,
             channel_name=channel_name,
             discord_channel_id=str(ctx.channel.id),
@@ -141,20 +141,20 @@ async def _add_youtube_account(ctx, firebase, handle: str):
 async def _remove_account(ctx, firebase, sns_type: SnsType, id):
     """移除帳號訂閱"""
     await ctx.defer()
-    firebase.delete_account(sns_type, id)
+    await firebase.delete_account(sns_type, id)
     await ctx.followup.send("取消訂閱成功")
 
 
 async def _add_berriz_account(ctx, firebase: Firebase, account: str):
     """新增 Berriz 帳號訂閱"""
     await ctx.defer()
-    if firebase.is_account_exists(SnsType.BERRIZ, account):
+    if await firebase.is_account_exists(SnsType.BERRIZ, account):
         await ctx.followup.send(f"{account} 已訂閱過")
     else:
         community_id = berriz_crawler.get_community_id(account)
         board_id = berriz_crawler.get_board_id(community_id)
         if community_id and board_id:
-            firebase.add_berriz_account(username=account, community_id=community_id, board_id=board_id,
+            await firebase.add_berriz_account(username=account, community_id=community_id, board_id=board_id,
                                         discord_channel_id=str(ctx.channel.id), updated_at=firestore.SERVER_TIMESTAMP
                                         )
             await ctx.followup.send(f"{account} 訂閱成功")

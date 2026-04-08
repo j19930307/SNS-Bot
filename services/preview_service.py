@@ -176,7 +176,8 @@ class PreviewService:
     async def _send_preview(self, ctx, sns_post, show_all: bool):
         """發送預覽訊息"""
         print(f"訊息內容:\n{sns_post}")
-        await ctx.followup.send(sns_post.post_link, embeds=discord_bot.generate_embeds(sns_post, show_all))
+        embeds = discord_bot.build_text_embed(sns_post) if show_all else discord_bot.build_embeds(sns_post)
+        await ctx.followup.send(sns_post.post_link, embeds=embeds)
 
         if show_all:
             media_urls = (sns_post.images or []) + (sns_post.videos or [])

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from commands.chart_commands import setup_chart_commands
 from commands.subscription_commands import setup_subscription_commands
 from commands.utility_commands import setup_utility_commands
-from firebase import Firebase
+from utils.firebase import Firebase
 
 # 載入環境變數
 load_dotenv()
