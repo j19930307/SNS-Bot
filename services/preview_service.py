@@ -11,7 +11,7 @@ from PIL import Image
 from pillow_heif import register_heif_opener
 from sns_core.utils import get_domain_from_url, to_alternative_instagram_url, shorten_url
 
-import discord_bot
+from sns_core import build_embeds, build_text_embed
 
 # 註冊 HEIF/HEIC 支援
 register_heif_opener()
@@ -176,7 +176,7 @@ class PreviewService:
     async def _send_preview(self, ctx, social_post, show_all: bool):
         """發送預覽訊息"""
         print(f"訊息內容:\n{social_post}")
-        embeds = discord_bot.build_text_embed(social_post) if show_all else discord_bot.build_embeds(social_post)
+        embeds = build_text_embed(social_post) if show_all else build_embeds(social_post)
         await ctx.followup.send(social_post.post_link, embeds=embeds)
 
         if show_all:
