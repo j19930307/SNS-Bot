@@ -2,8 +2,7 @@ import re
 from datetime import datetime, timezone
 
 import requests
-
-from models.sns_post import SnsPost, Author
+from sns_core.models import SocialPost, PostAuthor
 
 pattern = re.compile(r'/([^/]+)/board/([^/]+)/post/([^/]+)/')
 
@@ -67,9 +66,9 @@ def get_post_info(board_id: str, community_id: str, group_name: str, post_id: st
         except ValueError:
             dt = datetime.now(timezone.utc)
 
-        return SnsPost(
+        return SocialPost(
             post_link=f"https://berriz.in/en/{group_name}/board/{board_id}/post/{post_id}/",
-            author=Author(name=writer_name, url=writer_image),
+            author=PostAuthor(name=writer_name, url=writer_image),
             text=body,
             images=image_urls,
             created_at=dt

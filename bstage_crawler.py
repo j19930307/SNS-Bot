@@ -8,8 +8,7 @@ import jmespath
 import requests
 from dateutil import parser
 from fake_useragent import UserAgent
-
-from models.sns_post import SnsPost, Author
+from sns_core import SocialPost, PostAuthor
 
 
 def parse_post(data: Dict) -> Dict:
@@ -52,7 +51,7 @@ def extract_url_components(url: str) -> tuple[str, str, str]:
     raise ValueError(f"無法解析URL: {url}")
 
 
-def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsPost]:
+def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SocialPost]:
     """從bstage平台抓取資料"""
     ua = UserAgent()
     headers = {'user-agent': ua.random}
@@ -90,9 +89,9 @@ def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsPost]:
                     video_url = f"https://media.static.bstage.in/{artist}{post['video']}"
                     videos.append(video_url)
 
-                return SnsPost(
+                return SocialPost(
                     post_link=f"https://{artist}.bstage.in/story/feed/{feed_id}",
-                    author=Author(
+                    author=PostAuthor(
                         name=post.get("author_name", ""),
                         url=post.get("author_image_url", "")
                     ),
@@ -113,7 +112,7 @@ def fetch_data_from_bstage(artist: str, feed_id: str) -> Optional[SnsPost]:
         return None
 
 
-def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsPost]:
+def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SocialPost]:
     """從mnetplus平台抓取資料"""
     ua = UserAgent()
     headers = {'user-agent': ua.random}
@@ -151,9 +150,9 @@ def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsPost]:
                     video_url = f"https://media.static.bstage.in/{artist}{post['video']}"
                     videos.append(video_url)
 
-                return SnsPost(
+                return SocialPost(
                     post_link=f"https://artist.mnetplus.world/main/stg/{artist}/story/feed/{feed_id}",
-                    author=Author(
+                    author=PostAuthor(
                         name=post.get("author_name", ""),
                         url=post.get("author_image_url", "")
                     ),
@@ -174,7 +173,7 @@ def fetch_data_from_mnet_plus(artist: str, feed_id: str) -> Optional[SnsPost]:
         return None
 
 
-def fetch_data(url: str) -> Optional[SnsPost]:
+def fetch_data(url: str) -> Optional[SocialPost]:
     """主要函數：根據URL抓取資料"""
     try:
         artist, feed_id, platform = extract_url_components(url)

@@ -8,8 +8,7 @@ import httpx
 import jmespath
 import requests
 from bs4 import BeautifulSoup
-
-from models.sns_post import SnsPost, Author
+from sns_core import SocialPost, PostAuthor
 
 
 def parse_post(data: Dict) -> Dict:
@@ -52,8 +51,8 @@ def fetch_data_from_graphql(url):
         images_url = post_dict["images_url"]
         videos_url = post_dict["videos_url"]
 
-    return SnsPost(post_link=url,
-                   author=Author(name=f"{post_dict['username']}",
+    return SocialPost(post_link=url,
+                   author=PostAuthor(name=f"{post_dict['username']}",
                                  url=post_dict['profile_pic_url']),
                    text=post_dict['captions'], images=images_url, videos=videos_url,
                    created_at=datetime.fromtimestamp(post_dict['taken_at']))

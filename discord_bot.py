@@ -1,6 +1,6 @@
 from discord import Embed
-
-from models.sns_post import SnsPost
+from sns_core.models import SocialPost
+from sns_core.utils import get_domain_from_url
 
 # ---------------------------------------------------------------------------
 # Domain constants
@@ -58,18 +58,18 @@ def resolve_source(domain: str) -> tuple[str, str] | None:
 
 def _base_embed(
     *,
-    sns_post: SnsPost,
+    social_post: SocialPost,
     description: str,
     source: tuple[str, str] | None,
 ) -> Embed:
     embed = Embed(
-        title=sns_post.title,
+        title=social_post.title,
         description=description,
-        url=sns_post.post_link,
-        timestamp=sns_post.created_at,
+        url=social_post.post_link,
+        timestamp=social_post.created_at,
     ).set_author(
-        name=sns_post.author.name,
-        icon_url=sns_post.author.url,
+        name=social_post.author.name,
+        icon_url=social_post.author.url,
     )
 
     if source:
@@ -78,19 +78,18 @@ def _base_embed(
     return embed
 
 
-def _resolve_source_from_post(sns_post: SnsPost) -> tuple[str, str] | None:
-    from utils.url_utils import extract_domain
-    return resolve_source(extract_domain(sns_post.post_link) or "")
+def _resolve_source_from_post(social_post: SocialPost) -> tuple[str, str] | None:
+    return resolve_source(get_domain_from_url(social_post.post_link) or "")
 
 
-def build_embeds(sns_post: SnsPost) -> list[Embed]:
+def build_embeds(social_post: SocialPost) -> list[Embed]:
     """Build embeds with up to 4 images attached (normal preview)."""
-    source = _resolve_source_from_post(sns_post)
-    description = (sns_post.text or "")[:4096]
-    images = sns_post.images
+    source = _resolve_source_from_post(social_post)
+    description = (social_post.text or "")[:4096]
+    images = social_post.images
 
     def base() -> Embed:
-        return _base_embed(sns_post=sns_post, description=description, source=source)
+        return _base_embed(social_post=social_post, description=description, source=source)
 
     if not images:
         return [base()]
@@ -98,16 +97,16 @@ def build_embeds(sns_post: SnsPost) -> list[Embed]:
     # Discord groups embeds with the same URL into one block (max 4 images)
     embeds = [base().set_image(url=images[0])]
     for image_url in images[1:4]:
-        embeds.append(Embed(url=sns_post.post_link).set_image(url=image_url))
+        embeds.append(Embed(url=social_post.post_link).set_image(url=image_url))
 
     return embeds
 
 
-def build_text_embed(sns_post: SnsPost) -> list[Embed]:
+def build_text_embed(social_post: SocialPost) -> list[Embed]:
     """Build a single embed without images (used when media is uploaded as files)."""
-    source = _resolve_source_from_post(sns_post)
-    description = (sns_post.text or "")[:4096]
-    return [_base_embed(sns_post=sns_post, description=description, source=source)]
+    source = _resolve_source_from_post(social_post)
+    description = (social_post.text or "")[:4096]
+    return [_base_embed(social_post=social_post, description=description, source=source)]
 
 
 # ---------------------------------------------------------------------------

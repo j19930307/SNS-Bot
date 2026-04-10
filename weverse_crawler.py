@@ -2,11 +2,10 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
+from sns_core import SocialPost, PostAuthor
 
-from models.sns_post import SnsPost, Author
 
-
-async def fetch_data(url: str) -> SnsPost:
+async def fetch_data(url: str) -> SocialPost:
     """
     使用 Playwright 非同步爬取 Weverse 貼文資料
 
@@ -78,9 +77,9 @@ async def fetch_data(url: str) -> SnsPost:
     # 去除網址 query 參數，保持乾淨
     image_urls = [urlparse(link)._replace(query="").geturl() for link in image_urls]
 
-    return SnsPost(
+    return SocialPost(
         post_link=url,
-        author=Author(name=author_name, url=avatar_url),
+        author=PostAuthor(name=author_name, url=avatar_url),
         text=post_text,
         images=image_urls
     )

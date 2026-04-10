@@ -11,8 +11,7 @@ import aiohttp
 import jmespath
 from nested_lookup import nested_lookup
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
-
-from models.sns_post import SnsPost, Author
+from sns_core import SocialPost, PostAuthor
 
 
 class MediaType(Enum):
@@ -291,9 +290,9 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
     return {}
 
 
-async def fetch_data_from_browser(url: str) -> Tuple[Optional[SnsPost], Optional[SnsPost]]:
+async def fetch_data_from_browser(url: str) -> Tuple[Optional[SocialPost], Optional[SocialPost]]:
     """
-    從瀏覽器爬取資料並轉換為 SnsPost
+    從瀏覽器爬取資料並轉換為 SocialPost
 
     Returns:
         (主貼文, 引用貼文) 的 tuple，失敗時返回 (None, None)
@@ -315,18 +314,18 @@ async def fetch_data_from_browser(url: str) -> Tuple[Optional[SnsPost], Optional
         quoted = main_post["share_info"].get("quoted_post")
         if quoted and quoted.get("code"):
             try:
-                quoted_post = convert_to_sns_post(parse_thread(quoted))
+                quoted_post = convert_to_social_post(parse_thread(quoted))
             except Exception as e:
                 print(f"⚠️  處理引用貼文時發生錯誤: {e}")
 
-    return convert_to_sns_post(main_post), quoted_post
+    return convert_to_social_post(main_post), quoted_post
 
 
-def convert_to_sns_post(thread: Dict) -> SnsPost:
-    """將 thread 資料轉換為 SnsPost 物件"""
-    return SnsPost(
+def convert_to_social_post(thread: Dict) -> SocialPost:
+    """將 thread 資料轉換為 SocialPost 物件"""
+    return SocialPost(
         post_link=thread["url"],
-        author=Author(name=thread["username"], url=thread["user_pic"]),
+        author=PostAuthor(name=thread["username"], url=thread["user_pic"]),
         text=thread["text"],
         images=(thread.get("all_images") or []),
         videos=(thread.get("all_videos") or []),
@@ -345,11 +344,11 @@ if __name__ == "__main__":
 
 
     async def main():
-        sns_post, share_info = await fetch_data_from_browser(test_url)
+        social_post, share_info = await fetch_data_from_browser(test_url)
 
-        if sns_post:
+        if social_post:
             print("\n✅ 主貼文:")
-            print(sns_post)
+            print(social_post)
         else:
             print("\n❌ 無法取得主貼文")
 

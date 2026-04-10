@@ -9,9 +9,9 @@ import aiohttp
 import discord
 from PIL import Image
 from pillow_heif import register_heif_opener
+from sns_core.utils import get_domain_from_url, to_alternative_instagram_url, shorten_url
 
 import discord_bot
-from utils.url_utils import extract_domain, convert_to_custom_instagram_url, shorten_url
 
 # 註冊 HEIF/HEIC 支援
 register_heif_opener()
@@ -47,7 +47,7 @@ class PreviewService:
 
     async def _process_single_url(self, ctx, url: str, show_all: bool):
         """處理單一網址"""
-        domain = extract_domain(url)
+        domain = get_domain_from_url(url)
 
         if not domain:
             await ctx.followup.send(f"無法識別的連結格式: {url}", ephemeral=True)
@@ -78,12 +78,12 @@ class PreviewService:
             print(f"提取的推文連結: {tweet_url}")
 
             import twitter_crawler
-            sns_post = twitter_crawler.fetch_data(tweet_url)
+            social_post = twitter_crawler.fetch_data(tweet_url)
             # 如果只有影片，則改為 fixvx.com
-            if len(sns_post.images) == 0 and len(sns_post.videos) == 1 and not show_all:
+            if len(social_post.images) == 0 and len(social_post.videos) == 1 and not show_all:
                 await ctx.followup.send(url.replace("x.com", "fixvx.com"))
             else:
-                await self._send_preview(ctx, sns_post, show_all)
+                await self._send_preview(ctx, social_post, show_all)
 
     async def _preview_weverse(self, ctx, url: str, show_all: bool):
         """預覽 Weverse 內容"""
@@ -94,8 +94,8 @@ class PreviewService:
             print(f"提取的 Weverse 連結: {weverse_url}")
 
             import weverse_crawler
-            sns_post = await weverse_crawler.fetch_data(weverse_url)
-            await self._send_preview(ctx, sns_post, show_all)
+            social_post = await weverse_crawler.fetch_data(weverse_url)
+            await self._send_preview(ctx, social_post, show_all)
 
     async def _preview_instagram(self, ctx, url: str, show_all: bool):
         """預覽 Instagram 內容"""
@@ -106,21 +106,21 @@ class PreviewService:
             print(f"提取的 Instagram 連結: {instagram_url}")
 
             import instagram_crawler
-            sns_post = instagram_crawler.fetch_data_from_graphql(instagram_url)
+            social_post = instagram_crawler.fetch_data_from_graphql(instagram_url)
 
-            if sns_post:
-                print(sns_post)
-                await self._send_preview(ctx, sns_post, show_all)
+            if social_post:
+                print(social_post)
+                await self._send_preview(ctx, social_post, show_all)
             else:
-                await ctx.followup.send(convert_to_custom_instagram_url(instagram_url))
+                await ctx.followup.send(to_alternative_instagram_url(instagram_url))
 
     async def _preview_threads(self, ctx, url: str, show_all: bool):
         """預覽 Threads 內容"""
         import threads_crawler
-        sns_post, share_info = await threads_crawler.fetch_data_from_browser(url)
+        social_post, share_info = await threads_crawler.fetch_data_from_browser(url)
 
-        if sns_post:
-            await self._send_preview(ctx, sns_post, show_all)
+        if social_post:
+            await self._send_preview(ctx, social_post, show_all)
             if share_info:
                 await self._send_preview(ctx, share_info, show_all)
         else:
@@ -129,20 +129,20 @@ class PreviewService:
     async def _preview_berriz(self, ctx, url: str, show_all: bool):
         """預覽 Berriz 內容"""
         import berriz_crawler
-        sns_post = berriz_crawler.fetch_data(url)
+        social_post = berriz_crawler.fetch_data(url)
 
-        if sns_post:
-            await self._send_preview(ctx, sns_post, show_all)
+        if social_post:
+            await self._send_preview(ctx, social_post, show_all)
         else:
             await ctx.followup.send("抓取資料失敗", ephemeral=True)
 
     async def _preview_bstage(self, ctx, url: str, show_all: bool):
         """預覽 B.stage 內容"""
         import bstage_crawler
-        sns_post = bstage_crawler.fetch_data(url)
+        social_post = bstage_crawler.fetch_data(url)
 
-        if sns_post:
-            await self._send_preview(ctx, sns_post, show_all)
+        if social_post:
+            await self._send_preview(ctx, social_post, show_all)
         else:
             await ctx.followup.send("資料解析失敗", ephemeral=True)
 
@@ -173,14 +173,14 @@ class PreviewService:
             print(f"轉換 HEIC 失敗: {e}")
             return io.BytesIO(data), filename
 
-    async def _send_preview(self, ctx, sns_post, show_all: bool):
+    async def _send_preview(self, ctx, social_post, show_all: bool):
         """發送預覽訊息"""
-        print(f"訊息內容:\n{sns_post}")
-        embeds = discord_bot.build_text_embed(sns_post) if show_all else discord_bot.build_embeds(sns_post)
-        await ctx.followup.send(sns_post.post_link, embeds=embeds)
+        print(f"訊息內容:\n{social_post}")
+        embeds = discord_bot.build_text_embed(social_post) if show_all else discord_bot.build_embeds(social_post)
+        await ctx.followup.send(social_post.post_link, embeds=embeds)
 
         if show_all:
-            media_urls = (sns_post.images or []) + (sns_post.videos or [])
+            media_urls = (social_post.images or []) + (social_post.videos or [])
             if media_urls:
                 files = []
                 async with aiohttp.ClientSession() as session:
@@ -211,11 +211,11 @@ class PreviewService:
         else:
             videos = [
                 shorten_url(video) if len(video) > 100 else video
-                for video in (sns_post.videos or [])
+                for video in (social_post.videos or [])
             ]
 
             if videos:
                 await ctx.followup.send(content="\n".join(videos))
 
-        if sns_post.links:
-            await ctx.followup.send(content="\n".join(sns_post.links))
+        if social_post.links:
+            await ctx.followup.send(content="\n".join(social_post.links))

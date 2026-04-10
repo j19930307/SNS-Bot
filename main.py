@@ -6,18 +6,22 @@ import os
 
 import discord
 from dotenv import load_dotenv
+from sns_core.clients import FirestoreSubscriptionStore
+from sns_core.utils import decode_base64_json
 
 from commands.chart_commands import setup_chart_commands
 from commands.subscription_commands import setup_subscription_commands
 from commands.utility_commands import setup_utility_commands
-from utils.firebase import Firebase
 
 # 載入環境變數
 load_dotenv()
 BOT_TOKEN = os.environ["BOT_TOKEN"]
+firebase_admin_key = os.getenv("FIREBASE_ADMIN_KEY")
+if not firebase_admin_key:
+    raise ValueError("環境變數中找不到 FIREBASE_ADMIN_KEY！")
 
 # 初始化 Firebase 和 Bot
-firebase = Firebase()
+firebase = FirestoreSubscriptionStore(decode_base64_json(firebase_admin_key))
 bot = discord.Bot()
 
 
