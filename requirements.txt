@@ -16,4 +16,4 @@ parsel==1.10.0
 playwright==1.57.0
 pillow==12.1.1
 pillow-heif==1.2.0
-git+https://github.com/j19930307/sns-core.git@2a4d22b
+git+https://github.com/j19930307/sns-core.git@048d8a9

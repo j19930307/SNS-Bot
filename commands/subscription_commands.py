@@ -32,18 +32,34 @@ def setup_subscription_commands(bot: discord.Bot, firebase):
         elif option == SocialPlatform.MNET_PLUS.value:
             await _add_bstage_account(ctx, firebase, SocialPlatform.MNET_PLUS, account.strip())
 
-    async def _get_bstage_subscribed_list(ctx: discord.AutocompleteContext):
-        """取得 B.stage 訂閱清單（自動完成用）"""
-        tuple_list = await firebase.get_subscribed_list_from_discord_id(SocialPlatform.BSTAGE, str(ctx.interaction.channel.id))
+    async def _get_subscribed_list_by_platform(ctx: discord.AutocompleteContext):
+        """取得 B.stage or Mnet Plus 訂閱清單（自動完成用）"""
+        platform_value = ctx.options.get("option")
+        if not platform_value:
+            return []
+
+        try:
+            platform = SocialPlatform(platform_value)
+        except ValueError:
+            return []
+
+        tuple_list = await firebase.get_subscribed_list_from_discord_id(platform, str(ctx.interaction.channel.id))
         return [OptionChoice(name=username, value=id) for (username, id) in tuple_list]
 
     @bot.slash_command(description="取消訂閱 B.stage 帳號通知")
     async def bstage_unsubscribe(
             ctx,
+            option: Option(str, description="請選擇訂閱平台", choices=bstage_type, required=True),
             value: discord.Option(str, "選擇要取消訂閱的帳號",
-                                  autocomplete=basic_autocomplete(_get_bstage_subscribed_list))
+                                  autocomplete=_get_subscribed_list_by_platform)
     ):
-        await _remove_account(ctx, firebase, SocialPlatform.BSTAGE, value)
+        try:
+            platform = SocialPlatform(option)
+        except ValueError:
+            await ctx.respond("不支援的平台", ephemeral=True)
+            return
+
+        await _remove_account(ctx, firebase, platform, value.strip())
 
     # YouTube 相關指令
     @bot.slash_command(description="訂閱 YouTube 頻道影片通知")
@@ -92,7 +108,7 @@ async def _add_bstage_account(ctx, firebase, sns_type: SocialPlatform, account: 
     else:
         await firebase.add_account(
             sns_type,
-            id=account,
+            account_id=account,
             username=account,
             discord_channel_id=str(ctx.channel.id),
             updated_at=firestore.SERVER_TIMESTAMP
