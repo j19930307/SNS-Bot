@@ -28,6 +28,11 @@ DEFAULT_HEADERS = {
     "upgrade-insecure-requests": "1",
 }
 
+THREADS_ERROR_MARKERS = (
+    "Not all who wander are lost, but this page is",
+    "The link's not working or the page is gone",
+)
+
 
 def parse_thread(data: Dict[str, Any]) -> Dict[str, Any]:
     """Parse Threads post JSON dataset for the most important fields."""
@@ -111,7 +116,7 @@ def extract_original_url(threads_url: str) -> str:
     return unquote(query_params.get("u", [""])[0])
 
 
-def _fetch_page_html(url: str) -> Tuple[str, str]:
+def _fetch_page_html(url: str) -> Tuple[str, str, int]:
     response = curl_requests.get(
         url,
         headers=DEFAULT_HEADERS,
@@ -119,7 +124,7 @@ def _fetch_page_html(url: str) -> Tuple[str, str]:
         timeout=30,
     )
     response.raise_for_status()
-    return response.text, str(response.url)
+    return response.text, str(response.url), response.status_code
 
 
 def _extract_thread_items_from_html(html: str) -> list:
@@ -140,6 +145,37 @@ def _extract_thread_items_from_html(html: str) -> list:
         thread_items.extend(nested_lookup("thread_items", data))
 
     return thread_items
+
+
+def _extract_html_title(html: str) -> str:
+    parser = HTMLParser(html)
+    title_node = parser.css_first("title")
+    return title_node.text(strip=True) if title_node else ""
+
+
+def _is_threads_error_page(html: str) -> bool:
+    return any(marker in html for marker in THREADS_ERROR_MARKERS)
+
+
+def _log_response_diagnostics(
+    *,
+    requested_url: str,
+    final_url: str,
+    status_code: int,
+    html: str,
+) -> None:
+    title = _extract_html_title(html)
+    preview = re.sub(r"\s+", " ", html)[:200]
+    is_error_page = _is_threads_error_page(html)
+    print(
+        "Threads response diagnostics: "
+        f"requested_url={requested_url}, "
+        f"final_url={final_url}, "
+        f"status_code={status_code}, "
+        f"title={title!r}, "
+        f"is_error_page={is_error_page}, "
+        f"html_preview={preview!r}"
+    )
 
 
 def _find_matching_post(
@@ -171,7 +207,13 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
     for attempt in range(max_retries):
         try:
             print(f"Fetch attempt {attempt + 1}/{max_retries}...")
-            html, current_url = await asyncio.to_thread(_fetch_page_html, url)
+            html, current_url, status_code = await asyncio.to_thread(_fetch_page_html, url)
+            _log_response_diagnostics(
+                requested_url=url,
+                final_url=current_url,
+                status_code=status_code,
+                html=html,
+            )
             thread_items = _extract_thread_items_from_html(html)
 
             if thread_items:
@@ -183,13 +225,21 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
                 print("Matching Threads post not found in payload")
             else:
                 print("No thread_items found in HTML payload")
+                if _is_threads_error_page(html):
+                    print("Threads returned a known error page marker")
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             html_path = f"threads_page_{timestamp}.html"
             with open(html_path, "w", encoding="utf-8") as file:
                 file.write(html)
             print(f"Saved debug HTML to {html_path}")
-            return {"error": "no_thread_items", "url": current_url, "html_path": html_path}
+            error_code = "threads_error_page" if _is_threads_error_page(html) else "no_thread_items"
+            return {
+                "error": error_code,
+                "url": current_url,
+                "html_path": html_path,
+                "status_code": status_code,
+            }
 
         except Exception as error:
             print(f"Threads fetch failed: {error}")
