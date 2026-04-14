@@ -33,6 +33,21 @@ THREADS_ERROR_MARKERS = (
     "The link's not working or the page is gone",
 )
 
+THREADS_GRAPHQL_DOC_ID = "7448594591874178"
+THREADS_GRAPHQL_LSD = "hgmSkqDnLNFckqa7t1vJdn"
+THREADS_GRAPHQL_HEADERS = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/114.0.0.0 Safari/537.36"
+    ),
+    "X-Fb-Lsd": THREADS_GRAPHQL_LSD,
+    "X-Ig-App-Id": "238260118697367",
+}
+
 
 def parse_thread(data: Dict[str, Any]) -> Dict[str, Any]:
     """Parse Threads post JSON dataset for the most important fields."""
@@ -127,6 +142,60 @@ def _fetch_page_html(url: str) -> Tuple[str, str, int]:
     return response.text, str(response.url), response.status_code
 
 
+def _shortcode_to_post_id(post_code: str) -> str:
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    post_id = 0
+    normalized_code = post_code.split("?")[0].replace("/", "").strip()
+
+    for letter in normalized_code:
+        post_id = post_id * 64 + alphabet.index(letter)
+
+    return str(post_id)
+
+
+def _fetch_thread_items_from_graphql(post_code: str) -> Tuple[list, int]:
+    variables = json.dumps(
+        {
+            "check_for_unavailable_replies": True,
+            "first": 10,
+            "postID": _shortcode_to_post_id(post_code),
+            "__relay_internal__pv__BarcelonaIsLoggedInrelayprovider": True,
+            "__relay_internal__pv__BarcelonaIsThreadContextHeaderEnabledrelayprovider": False,
+            "__relay_internal__pv__BarcelonaIsThreadContextHeaderFollowButtonEnabledrelayprovider": False,
+            "__relay_internal__pv__BarcelonaUseCometVideoPlaybackEnginerelayprovider": False,
+            "__relay_internal__pv__BarcelonaOptionalCookiesEnabledrelayprovider": False,
+            "__relay_internal__pv__BarcelonaIsViewCountEnabledrelayprovider": False,
+            "__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider": False,
+        },
+        separators=(",", ":"),
+    )
+    response = curl_requests.post(
+        "https://www.threads.com/api/graphql",
+        headers=THREADS_GRAPHQL_HEADERS,
+        data={
+            "variables": variables,
+            "doc_id": THREADS_GRAPHQL_DOC_ID,
+            "lsd": THREADS_GRAPHQL_LSD,
+        },
+        impersonate="chrome",
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+
+    errors = payload.get("errors") or []
+    if errors:
+        print(f"Threads GraphQL errors: {errors}")
+        return [], response.status_code
+
+    edges = jmespath.search("data.data.edges", payload) or []
+    if not edges:
+        return [], response.status_code
+
+    thread_items = edges[0].get("node", {}).get("thread_items") or []
+    return thread_items, response.status_code
+
+
 def _extract_thread_items_from_html(html: str) -> list:
     parser = HTMLParser(html)
     thread_items = []
@@ -187,12 +256,28 @@ def _find_matching_post(
         (
             parse_thread(thread["post"])
             for item in thread_items
-            for thread in item
+            for thread in (item if isinstance(item, list) else [item])
             if thread["post"]["user"]["username"] == username
             and thread["post"]["code"] == post_code
         ),
         None,
     )
+
+
+async def _try_graphql_fallback(username: str, post_code: str) -> Optional[Dict[str, Any]]:
+    print("Trying Threads GraphQL fallback...")
+    thread_items, status_code = await asyncio.to_thread(_fetch_thread_items_from_graphql, post_code)
+    print(f"Threads GraphQL status_code={status_code}, thread_items={len(thread_items)}")
+
+    if not thread_items:
+        return None
+
+    result = _find_matching_post(thread_items, username, post_code)
+    if result:
+        print("Threads GraphQL fallback parsed successfully")
+    else:
+        print("Threads GraphQL fallback did not find the target post")
+    return result
 
 
 async def scrape_thread(url: str, max_retries: int = 1) -> dict:
@@ -223,10 +308,16 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
                     return result
 
                 print("Matching Threads post not found in payload")
+                graphql_result = await _try_graphql_fallback(username, post_code)
+                if graphql_result:
+                    return graphql_result
             else:
                 print("No thread_items found in HTML payload")
                 if _is_threads_error_page(html):
                     print("Threads returned a known error page marker")
+                graphql_result = await _try_graphql_fallback(username, post_code)
+                if graphql_result:
+                    return graphql_result
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             html_path = f"threads_page_{timestamp}.html"
