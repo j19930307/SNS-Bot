@@ -14,6 +14,8 @@ jmespath==1.0.1
 nested_lookup==0.2.25
 parsel==1.10.0
 playwright==1.57.0
+curl_cffi==0.15.0
+selectolax==0.3.34
 pillow==12.2.0
 pillow-heif==1.2.0
 git+https://github.com/j19930307/sns-core.git@048d8a9
