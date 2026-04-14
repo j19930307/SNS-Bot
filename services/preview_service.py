@@ -124,7 +124,7 @@ class PreviewService:
             if share_info:
                 await self._send_preview(ctx, share_info, show_all)
         else:
-            await ctx.followup.send("資料解析失敗", ephemeral=True)
+            await ctx.followup.send(url, ephemeral=True)
 
     async def _preview_berriz(self, ctx, url: str, show_all: bool):
         """預覽 Berriz 內容"""
