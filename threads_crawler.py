@@ -357,6 +357,10 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
 
         except Exception as error:
             print(f"Threads fetch failed: {error}")
+            if attempt == 0:
+                graphql_result = await _try_graphql_fallback(username, post_code)
+                if graphql_result:
+                    return graphql_result
             if attempt < max_retries - 1:
                 wait_time = (attempt + 1) * 2
                 print(f"Retrying after {wait_time} seconds...")
