@@ -131,6 +131,21 @@ def extract_original_url(threads_url: str) -> str:
     return unquote(query_params.get("u", [""])[0])
 
 
+def _log_rate_limit_headers(response: Any, *, request_name: str, request_url: str) -> None:
+    retry_after = response.headers.get("Retry-After")
+    rate_limit_headers = {
+        key: value
+        for key, value in response.headers.items()
+        if key.lower().startswith("x-ratelimit") or key.lower() in {"retry-after"}
+    }
+    print(
+        f"{request_name} response status={response.status_code}, "
+        f"url={request_url}, "
+        f"retry_after={retry_after}, "
+        f"rate_limit_headers={rate_limit_headers}"
+    )
+
+
 def _fetch_page_html(url: str) -> Tuple[str, str, int]:
     response = curl_requests.get(
         url,
@@ -138,6 +153,8 @@ def _fetch_page_html(url: str) -> Tuple[str, str, int]:
         impersonate="chrome",
         timeout=30,
     )
+    if response.status_code >= 400:
+        _log_rate_limit_headers(response, request_name="Threads HTML fetch", request_url=url)
     response.raise_for_status()
     return response.text, str(response.url), response.status_code
 
@@ -180,6 +197,12 @@ def _fetch_thread_items_from_graphql(post_code: str) -> Tuple[list, int]:
         impersonate="chrome",
         timeout=30,
     )
+    if response.status_code >= 400:
+        _log_rate_limit_headers(
+            response,
+            request_name="Threads GraphQL fetch",
+            request_url="https://www.threads.com/api/graphql",
+        )
     response.raise_for_status()
     payload = response.json()
 
