@@ -99,11 +99,23 @@ class PreviewService:
 
     async def _preview_instagram(self, ctx, url: str, show_all: bool):
         """預覽 Instagram 內容"""
-        match = re.search(r'(https://www.instagram.com/(p|reel|reels|stories)/[^?]+)', url)
+        # 通用的 Instagram URL 正則表達式
+        # 支援: instagram.com/{username}/p/{id} 和 instagram.com/p/{id}
+        pattern = r'(?:https?://)?(?:www\.)?instagram\.com/(?:([^/]+)/)?(?P<type>p|reel|reels|stories)/(?P<id>[^/?#]+)'
+
+        match = re.search(pattern, url)
 
         if match:
-            instagram_url = match.group(0)
+            post_type = match.group('type')
+            post_id = match.group('id')
+            username = match.group(1)  # 可能為 None
+
+            # 構建標準 URL（不包含用戶名，因為不是必需的）
+            instagram_url = f"https://www.instagram.com/{post_type}/{post_id}/"
+
             print(f"提取的 Instagram 連結: {instagram_url}")
+            if username:
+                print(f"用戶名: {username}")
 
             import instagram_crawler
             social_post = instagram_crawler.fetch_data_from_graphql(instagram_url)
@@ -113,6 +125,9 @@ class PreviewService:
                 await self._send_preview(ctx, social_post, show_all)
             else:
                 await ctx.followup.send(to_alternative_instagram_url(instagram_url))
+        else:
+            print(f"❌ 無法解析 Instagram URL: {url}")
+            await ctx.followup.send("❌ 無效的 Instagram 連結")
 
     async def _preview_threads(self, ctx, url: str, show_all: bool):
         """預覽 Threads 內容"""
