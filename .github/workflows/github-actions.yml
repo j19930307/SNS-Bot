@@ -3,8 +3,13 @@ name: SNS Bot
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '17 */5 * * *'
+
+permissions:
+  contents: read
+  actions: write
 
 concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
@@ -13,6 +18,7 @@ concurrency:
 jobs:
   run-python:
     runs-on: ubuntu-latest
+    timeout-minutes: 355
 
     steps:
     - name: Checkout
@@ -58,5 +64,44 @@ jobs:
         envkey_MELON_WEEKLY_CHART_URL: ${{ vars.MELON_WEEKLY_CHART_URL }}
         envkey_MELON_MONTHLY_CHART_URL: ${{ vars.MELON_MONTHLY_CHART_URL }}
 
-    - name: run Python script
-      run: python -u main.py
+    - name: Install GitHub CLI
+      run: |
+        type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+          sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
+          sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt update
+        sudo apt install gh -y
+
+    - name: Run bot and schedule takeover
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python -u main.py &
+        BOT_PID=$!
+
+        (
+          sleep $((5 * 60 * 60 + 20 * 60))
+          gh workflow run github-actions.yml --ref main
+        ) &
+        HANDOFF_PID=$!
+
+        wait -n "$BOT_PID" "$HANDOFF_PID"
+
+        if ! kill -0 "$HANDOFF_PID" 2>/dev/null; then
+          wait "$HANDOFF_PID"
+          HANDOFF_STATUS=$?
+          if [ "$HANDOFF_STATUS" -ne 0 ]; then
+            kill "$BOT_PID" 2>/dev/null || true
+            wait "$BOT_PID" 2>/dev/null || true
+            exit "$HANDOFF_STATUS"
+          fi
+
+          wait "$BOT_PID"
+          exit $?
+        fi
+
+        kill "$HANDOFF_PID" 2>/dev/null || true
+        wait "$BOT_PID"
