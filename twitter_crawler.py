@@ -9,7 +9,6 @@ from selenium import webdriver
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from sns_core import SocialPost, PostAuthor
-from tweety import Twitter
 
 
 def fetch_data_from_fixtwitter(tweet_id: str) -> SocialPost | None:
@@ -44,26 +43,6 @@ def fetch_data_from_fixtwitter(tweet_id: str) -> SocialPost | None:
                        text=tweet_content, images=photos_url, videos=videos_url,
                        created_at=datetime.fromtimestamp(created_timestamp_in_seconds))
     return None
-
-
-def fetch_data_from_tweety(url: str):
-    app = Twitter("session")
-    tweet = app.tweet_detail(url)
-
-    images = []
-    videos = []
-    for media in tweet.media:
-        if media.type == "video" or media.type == "animated_gif":
-            # 使用max()函数找出bitrate最大的URL
-            video_url = max(media.streams, key=lambda x: x.bitrate).url
-            videos.append(video_url)
-        else:
-            image_url = media.media_url_https + ":orig"
-            images.append(image_url)
-
-    return SocialPost(post_link=url, author=PostAuthor(f"{tweet.author.name} (@{tweet.author.username})",
-                                                tweet.author.profile_image_url_https), text=tweet.text,
-                   images=images, videos=videos)
 
 
 def fetch_data_from_browser(url: str):
