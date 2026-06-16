@@ -50,12 +50,15 @@ def fetch_data_from_graphql(url):
     else:
         images_url = post_dict["images_url"]
         videos_url = post_dict["videos_url"]
+        
+    taken_at_timestamp = post_dict.get('taken_at')
+    created_at = datetime.fromtimestamp(taken_at_timestamp) if taken_at_timestamp else None
 
     return SocialPost(post_link=url,
                    author=PostAuthor(name=f"{post_dict['username']}",
                                  url=post_dict['profile_pic_url']),
                    text=post_dict['captions'], images=images_url, videos=videos_url,
-                   created_at=datetime.fromtimestamp(post_dict['taken_at']))
+                   created_at=created_at)
 
 
 def scrape_post_by_graphql(shortcode: str) -> Dict:
