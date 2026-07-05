@@ -68,7 +68,8 @@ def parse_thread(data: Dict[str, Any]) -> Dict[str, Any]:
         post_video: video_versions[0].url,
         media_type: media_type,
         linked_inline_media: text_post_app_info.linked_inline_media,
-        share_info: text_post_app_info.share_info
+        share_info: text_post_app_info.share_info,
+        permalink: permalink
     }""",
         data,
     )
@@ -77,7 +78,13 @@ def parse_thread(data: Dict[str, Any]) -> Dict[str, Any]:
     result["all_images"] = all_images
     result["all_videos"] = all_videos
     result["all_attachments"] = all_attachments
-    result["url"] = f"https://www.threads.com/@{result['username']}/post/{result['code']}"
+    
+    if result.get("permalink"):
+        result["url"] = result["permalink"]
+    elif result.get("username") and result.get("code"):
+        result["url"] = f"https://www.threads.com/@{result['username']}/post/{result['code']}"
+    else:
+        result["url"] = ""
 
     print(result)
     return result
@@ -384,7 +391,8 @@ async def fetch_data_from_browser(url: str) -> Tuple[Optional[SocialPost], Optio
 
     quoted_post = None
     if main_post.get("share_info"):
-        quoted = main_post["share_info"].get("quoted_post")
+        share_info = main_post["share_info"]
+        quoted = share_info.get("quoted_post") or share_info.get("quoted_attachment_post")
         if quoted and quoted.get("code"):
             try:
                 quoted_post = convert_to_social_post(parse_thread(quoted))
@@ -395,6 +403,8 @@ async def fetch_data_from_browser(url: str) -> Tuple[Optional[SocialPost], Optio
 
 
 def convert_to_social_post(thread: Dict[str, Any]) -> SocialPost:
+    published_on = thread.get("published_on")
+    created_at = datetime.fromtimestamp(published_on) if published_on else None
     return SocialPost(
         post_link=thread["url"],
         author=PostAuthor(name=thread["username"], url=thread["user_pic"]),
@@ -402,12 +412,12 @@ def convert_to_social_post(thread: Dict[str, Any]) -> SocialPost:
         images=(thread.get("all_images") or []),
         videos=(thread.get("all_videos") or []),
         links=(thread.get("all_attachments") or []),
-        created_at=datetime.fromtimestamp(thread["published_on"]),
+        created_at=created_at,
     )
 
 
 if __name__ == "__main__":
-    test_url = "https://www.threads.com/@cryforyysh/post/DQBQiuXjv-u"
+    test_url = "https://www.threads.com/@01_26_moon_ko_ng/post/DaYMzdHj1BK"
 
     print("=" * 60)
     print("Testing Threads crawler")

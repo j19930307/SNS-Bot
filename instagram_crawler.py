@@ -45,11 +45,21 @@ def fetch_data_from_graphql(url):
     images_url = []
     videos_url = []
 
-    if post_dict["is_video"]:
-        videos_url.append(post_dict["video_url"])
+    if post_dict.get("is_video"):
+        video_url = post_dict.get("video_url")
+        if video_url:
+            videos_url.append(video_url)
+        else:
+            # Fallback to thumbnail display url if video_url is missing (e.g. copyright blocked)
+            display_url = post_dict.get("src")
+            if display_url:
+                images_url.append(display_url)
     else:
-        images_url = post_dict["images_url"]
-        videos_url = post_dict["videos_url"]
+        images_url = post_dict.get("images_url") or []
+        videos_url = post_dict.get("videos_url") or []
+
+    images_url = [u for u in images_url if u]
+    videos_url = [u for u in videos_url if u]
         
     taken_at_timestamp = post_dict.get('taken_at')
     created_at = datetime.fromtimestamp(taken_at_timestamp) if taken_at_timestamp else None
