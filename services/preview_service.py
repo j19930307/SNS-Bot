@@ -4,6 +4,8 @@
 """
 import io
 import re
+import sys
+from typing import Any
 
 import aiohttp
 import discord
@@ -12,6 +14,16 @@ from pillow_heif import register_heif_opener
 from sns_core.utils import get_domain_from_url, to_alternative_instagram_url, shorten_url
 
 from sns_core import build_embeds, build_text_embed
+
+
+def _safe_print(msg: Any) -> None:
+    """Safely print objects containing unicode characters without crashing on Windows cp950 console."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        text = str(msg)
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        print(text.encode(encoding, errors="replace").decode(encoding, errors="replace"))
 
 # 註冊 HEIF/HEIC 支援
 register_heif_opener()
@@ -121,7 +133,7 @@ class PreviewService:
             social_post = instagram_crawler.fetch_data_from_graphql(instagram_url)
 
             if social_post:
-                print(social_post)
+                _safe_print(social_post)
                 await self._send_preview(ctx, social_post, show_all)
             else:
                 await ctx.followup.send(to_alternative_instagram_url(instagram_url))
@@ -190,7 +202,7 @@ class PreviewService:
 
     async def _send_preview(self, ctx, social_post, show_all: bool):
         """發送預覽訊息"""
-        print(f"訊息內容:\n{social_post}")
+        _safe_print(f"訊息內容:\n{social_post}")
         embeds = build_text_embed(social_post) if show_all else build_embeds(social_post)
         await ctx.followup.send(social_post.post_link, embeds=embeds)
 

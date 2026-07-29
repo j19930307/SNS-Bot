@@ -1,6 +1,7 @@
 import asyncio
 import json
 import re
+import sys
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple
@@ -11,6 +12,15 @@ import jmespath
 from nested_lookup import nested_lookup
 from selectolax.parser import HTMLParser
 from sns_core import PostAuthor, SocialPost
+
+
+def _safe_print(msg: str) -> None:
+    """Print message safely without throwing UnicodeEncodeError on Windows cp950 console."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        print(msg.encode(encoding, errors="replace").decode(encoding, errors="replace"))
 
 
 class MediaType(Enum):
@@ -86,7 +96,7 @@ def parse_thread(data: Dict[str, Any]) -> Dict[str, Any]:
     else:
         result["url"] = ""
 
-    print(result)
+    print(f"Parsed thread: username={result.get('username')}, code={result.get('code')}")
     return result
 
 
@@ -266,7 +276,7 @@ def _log_response_diagnostics(
     title = _extract_html_title(html)
     preview = re.sub(r"\s+", " ", html)[:200]
     is_error_page = _is_threads_error_page(html)
-    print(
+    _safe_print(
         "Threads response diagnostics: "
         f"requested_url={requested_url}, "
         f"final_url={final_url}, "
@@ -312,14 +322,46 @@ async def _try_graphql_fallback(username: str, post_code: str) -> Optional[Dict[
     return result
 
 
+async def _resolve_share_link(url: str) -> Optional[str]:
+    """Fast resolution of Threads share links via HTTP redirect header."""
+    def _fetch_redirect():
+        response = curl_requests.get(
+            url,
+            headers=DEFAULT_HEADERS,
+            impersonate="chrome",
+            allow_redirects=False,
+            timeout=10,
+        )
+        if response.status_code in (301, 302, 303, 307, 308):
+            return response.headers.get("location") or response.headers.get("Location")
+        return None
+
+    try:
+        return await asyncio.to_thread(_fetch_redirect)
+    except Exception as error:
+        print(f"Fast share link redirect resolution failed: {error}")
+        return None
+
+
 async def scrape_thread(url: str, max_retries: int = 1) -> dict:
     pattern = r"threads\.com/@([\w.]+)/post/([\w-]+)"
     match = re.search(pattern, url)
-    if not match:
-        print(f"Invalid Threads URL: {url}")
-        return {}
+    username, post_code = match.groups() if match else (None, None)
 
-    username, post_code = match.groups()
+    # Fast path for share links (/share/...)
+    if not username or not post_code:
+        redirect_loc = await _resolve_share_link(url)
+        if redirect_loc:
+            redirect_match = re.search(pattern, redirect_loc)
+            if redirect_match:
+                username, post_code = redirect_match.groups()
+                print(f"Fast resolved share link: username={username}, post_code={post_code}")
+
+    # Fast path: Try GraphQL first if username and post_code are known
+    if username and post_code:
+        graphql_result = await _try_graphql_fallback(username, post_code)
+        if graphql_result:
+            return graphql_result
 
     for attempt in range(max_retries):
         try:
@@ -331,25 +373,33 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
                 status_code=status_code,
                 html=html,
             )
+
+            # If username/post_code wasn't matched from initial URL (e.g. /share/ link), match from redirected URL
+            if not username or not post_code:
+                redirect_match = re.search(pattern, current_url)
+                if redirect_match:
+                    username, post_code = redirect_match.groups()
+                    print(f"Resolved URL to post: username={username}, post_code={post_code}")
+
+            if not username or not post_code:
+                print(f"Unable to extract username and post code from URL ({url}) or redirected URL ({current_url})")
+
             thread_items = _extract_thread_items_from_html(html)
 
-            if thread_items:
+            if thread_items and username and post_code:
                 result = _find_matching_post(thread_items, username, post_code)
                 if result:
                     print("Threads post parsed successfully")
                     return result
 
                 print("Matching Threads post not found in payload")
+
+            if username and post_code:
                 graphql_result = await _try_graphql_fallback(username, post_code)
                 if graphql_result:
                     return graphql_result
             else:
-                print("No thread_items found in HTML payload")
-                if _is_threads_error_page(html):
-                    print("Threads returned a known error page marker")
-                graphql_result = await _try_graphql_fallback(username, post_code)
-                if graphql_result:
-                    return graphql_result
+                print("No username/post_code available for GraphQL fallback")
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             html_path = f"threads_page_{timestamp}.html"
@@ -366,7 +416,7 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
 
         except Exception as error:
             print(f"Threads fetch failed: {error}")
-            if attempt == 0:
+            if attempt == 0 and username and post_code:
                 graphql_result = await _try_graphql_fallback(username, post_code)
                 if graphql_result:
                     return graphql_result
