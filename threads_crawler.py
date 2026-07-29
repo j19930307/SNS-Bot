@@ -287,8 +287,10 @@ def _find_matching_post(
             parse_thread(thread["post"])
             for item in thread_items
             for thread in (item if isinstance(item, list) else [item])
-            if thread["post"]["user"]["username"] == username
-            and thread["post"]["code"] == post_code
+            if thread.get("post")
+            and thread["post"].get("user")
+            and thread["post"]["user"].get("username") == username
+            and thread["post"].get("code") == post_code
         ),
         None,
     )
