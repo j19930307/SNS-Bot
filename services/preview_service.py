@@ -2,6 +2,7 @@
 預覽服務
 負責處理各種社群媒體連結的預覽功能
 """
+import asyncio
 import io
 import re
 import sys
@@ -204,7 +205,7 @@ class PreviewService:
         """發送預覽訊息"""
         _safe_print(f"訊息內容:\n{social_post}")
         embeds = build_text_embed(social_post) if show_all else build_embeds(social_post)
-        await ctx.followup.send(social_post.post_link, embeds=embeds)
+        await ctx.followup.send(content=social_post.post_link, embeds=embeds)
 
         if show_all:
             media_urls = (social_post.images or []) + (social_post.videos or [])
@@ -236,13 +237,12 @@ class PreviewService:
                         chunk = files[i:i + chunk_size]
                         await ctx.followup.send(files=chunk)
         else:
-            videos = [
-                shorten_url(video) if len(video) > 100 else video
-                for video in (social_post.videos or [])
-            ]
-
-            if videos:
-                await ctx.followup.send(content="\n".join(videos))
+            if social_post.videos:
+                for video in social_post.videos:
+                    url_to_send = shorten_url(video) if len(video) > 100 else video
+                    await ctx.followup.send(content=url_to_send)
 
         if social_post.links:
-            await ctx.followup.send(content="\n".join(social_post.links))
+            for link in social_post.links:
+                link_to_send = shorten_url(link) if len(link) > 100 else link
+                await ctx.followup.send(content=link_to_send)

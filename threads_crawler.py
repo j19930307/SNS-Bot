@@ -145,7 +145,10 @@ def extract_all_media(result: Dict[str, Any]) -> tuple[list[str], list[str], lis
 def extract_original_url(threads_url: str) -> str:
     parsed_url = urlparse(threads_url)
     query_params = parse_qs(parsed_url.query)
-    return unquote(query_params.get("u", [""])[0])
+    u_param = query_params.get("u")
+    if u_param and u_param[0]:
+        return unquote(u_param[0])
+    return threads_url
 
 
 def _log_rate_limit_headers(response: Any, *, request_name: str, request_url: str) -> None:
@@ -357,12 +360,6 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
                 username, post_code = redirect_match.groups()
                 print(f"Fast resolved share link: username={username}, post_code={post_code}")
 
-    # Fast path: Try GraphQL first if username and post_code are known
-    if username and post_code:
-        graphql_result = await _try_graphql_fallback(username, post_code)
-        if graphql_result:
-            return graphql_result
-
     for attempt in range(max_retries):
         try:
             print(f"Fetch attempt {attempt + 1}/{max_retries}...")
@@ -389,7 +386,7 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
             if thread_items and username and post_code:
                 result = _find_matching_post(thread_items, username, post_code)
                 if result:
-                    print("Threads post parsed successfully")
+                    print("Threads post parsed successfully from HTML")
                     return result
 
                 print("Matching Threads post not found in payload")
@@ -429,6 +426,30 @@ async def scrape_thread(url: str, max_retries: int = 1) -> dict:
     return {}
 
 
+async def _resolve_attached_media(social_post: Optional[SocialPost]) -> None:
+    """Resolve attached external links (e.g. Instagram Reels) to extract actual video URLs into social_post.videos."""
+    if not social_post or not social_post.links:
+        return
+
+    import instagram_crawler
+
+    for link in social_post.links:
+        if "instagram.com" in link:
+            try:
+                print(f"Resolving attached Instagram link in Threads post: {link}")
+                ig_post = await asyncio.to_thread(instagram_crawler.fetch_data_from_graphql, link)
+                if ig_post and ig_post.videos:
+                    for v in ig_post.videos:
+                        if v not in social_post.videos:
+                            social_post.videos.append(v)
+                if ig_post and ig_post.images and not social_post.images:
+                    for img in ig_post.images:
+                        if img not in social_post.images:
+                            social_post.images.append(img)
+            except Exception as error:
+                print(f"Failed to resolve attached Instagram link ({link}): {error}")
+
+
 async def fetch_data_from_browser(url: str) -> Tuple[Optional[SocialPost], Optional[SocialPost]]:
     main_post = await scrape_thread(url)
     if not main_post:
@@ -451,7 +472,12 @@ async def fetch_data_from_browser(url: str) -> Tuple[Optional[SocialPost], Optio
             except Exception as error:
                 print(f"Quoted post conversion failed: {error}")
 
-    return convert_to_social_post(main_post), quoted_post
+    main_social_post = convert_to_social_post(main_post)
+    await _resolve_attached_media(main_social_post)
+    if quoted_post:
+        await _resolve_attached_media(quoted_post)
+
+    return main_social_post, quoted_post
 
 
 def convert_to_social_post(thread: Dict[str, Any]) -> SocialPost:
@@ -469,7 +495,7 @@ def convert_to_social_post(thread: Dict[str, Any]) -> SocialPost:
 
 
 if __name__ == "__main__":
-    test_url = "https://www.threads.com/@01_26_moon_ko_ng/post/DaYMzdHj1BK"
+    test_url = "https://www.threads.com/@g.na_z_la/post/DbXjNuDk9R3"
 
     print("=" * 60)
     print("Testing Threads crawler")
