@@ -37,9 +37,11 @@ def fetch_data_from_graphql(url):
     if not match:
         return None
     shortcode = match.group(2)
-    response_dict = scrape_post_by_embed(shortcode)
+    response_dict = scrape_post_by_graphql(shortcode)
     if not response_dict:
-        return
+        response_dict = scrape_post_by_embed(shortcode)
+    if not response_dict:
+        return None
 
     post_dict = parse_post(response_dict)
     images_url = []
@@ -57,6 +59,8 @@ def fetch_data_from_graphql(url):
     else:
         images_url = post_dict.get("images_url") or []
         videos_url = post_dict.get("videos_url") or []
+        if not images_url and post_dict.get("src"):
+            images_url.append(post_dict.get("src"))
 
     images_url = [u for u in images_url if u]
     videos_url = [u for u in videos_url if u]
@@ -65,49 +69,39 @@ def fetch_data_from_graphql(url):
     created_at = datetime.fromtimestamp(taken_at_timestamp) if taken_at_timestamp else None
 
     return SocialPost(post_link=url,
-                   author=PostAuthor(name=f"{post_dict['username']}",
-                                 url=post_dict['profile_pic_url']),
-                   text=post_dict['captions'], images=images_url, videos=videos_url,
-                   created_at=created_at)
+                      author=PostAuthor(name=f"{post_dict['username']}",
+                                        url=post_dict['profile_pic_url']),
+                      text=post_dict['captions'], images=images_url, videos=videos_url,
+                      created_at=created_at)
 
 
 def scrape_post_by_graphql(shortcode: str) -> Dict:
-    print(f"scraping instagram post: {shortcode}")
-
-    variables = {
-        "shortcode": shortcode
-    }
-    url = "https://www.instagram.com/graphql/query/?query_hash=b3055c01b4b222b8a47dc12b090e4e64&variables="
+    print(f"scraping instagram post via graphql: {shortcode}")
+    doc_id = "10015901848480474"
+    url = f"https://www.instagram.com/graphql/query/?doc_id={doc_id}&variables={quote(json.dumps({'shortcode': shortcode}))}"
     headers = {
         "Accept": "*/*",
         "Accept-Language": "en-US,en;q=0.9",
-        "Content-Type": "application/x-www-form-urlencoded",
         "Origin": "https://www.instagram.com",
-        "Priority": "u=1, i",
-        "Sec-Ch-Prefers-Color-Scheme": "dark",
-        "Sec-Ch-Ua": '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
-        "Sec-Ch-Ua-Full-Version-List": '"Google Chrome";v="125.0.6422.142", "Chromium";v="125.0.6422.142", "Not.A/Brand";v="24.0.0.0"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Model": '""',
-        "Sec-Ch-Ua-Platform": '"macOS"',
-        "Sec-Ch-Ua-Platform-Version": '"12.7.4"',
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "X-Asbd-Id": "129477",
-        "X-Bloks-Version-Id": "e2004666934296f275a5c6b2c9477b63c80977c7cc0fd4b9867cb37e36092b68",
-        "X-Fb-Friendly-Name": "PolarisPostActionLoadPostQueryQuery",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "X-Ig-App-Id": "936619743392459"
     }
-    result = httpx.get(
-        url=url + quote(json.dumps(variables)),
-        headers=headers,
-        timeout=30000
-    )
-    print(f"{result.status_code} {result.content}")
-    data = json.loads(result.content)
-    return data["data"]["shortcode_media"]
+    try:
+        result = httpx.get(
+            url=url,
+            headers=headers,
+            timeout=30.0
+        )
+        if result.status_code == 200:
+            data = json.loads(result.content)
+            data_dict = data.get("data", {})
+            return data_dict.get("xdt_shortcode_media") or data_dict.get("shortcode_media")
+    except Exception as e:
+        print(f"scrape_post_by_graphql failed: {e}")
+    return None
 
 
 def scrape_post_by_embed(shortcode: str):
@@ -115,12 +109,13 @@ def scrape_post_by_embed(shortcode: str):
     result = requests.get(url)
 
     if result.status_code != 200:
-        return print(f"抓取失敗 status code: {result.status_code} 錯誤訊息: {result.content}")
+        print(f"抓取失敗 status code: {result.status_code} 錯誤訊息: {result.content}")
+        return None
 
     soup = BeautifulSoup(result.content, 'lxml')
     script_tag = soup.find('script', string=re.compile(r's.handle'))
     if script_tag is None:
-        return
+        return None
     match = re.search(r's\.handle\((\{.*?})\);', script_tag.string, re.DOTALL)
 
     if match:
@@ -134,4 +129,8 @@ def scrape_post_by_embed(shortcode: str):
                 if gql_data:
                     return gql_data["shortcode_media"]
         except IndexError:
-            return
+            return None
+
+
+if __name__ == "__main__":
+    print(fetch_data_from_graphql("https://www.instagram.com/reel/DbidTrgzTtZ/"))
