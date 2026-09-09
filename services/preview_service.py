@@ -152,7 +152,7 @@ class PreviewService:
             if share_info:
                 await self._send_preview(ctx, share_info, show_all)
         else:
-            await ctx.followup.send(url, ephemeral=True)
+            await ctx.followup.send(threads_crawler.to_fzthreads_url(url))
 
     async def _preview_berriz(self, ctx, url: str, show_all: bool):
         """預覽 Berriz 內容"""

@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse, urlunparse
 
 from curl_cffi import requests as curl_requests
 import jmespath
@@ -149,6 +149,55 @@ def extract_original_url(threads_url: str) -> str:
     if u_param and u_param[0]:
         return unquote(u_param[0])
     return threads_url
+
+
+def to_fzthreads_url(url: str) -> str:
+    """Rewrite Threads URLs to fzthreads.com for fallback Discord preview embedding."""
+    pattern = r"threads\.com/@([\w.]+)/post/([\w-]+)"
+    match = re.search(pattern, url)
+    if match:
+        username, post_code = match.groups()
+        return f"https://www.fzthreads.com/@{username}/post/{post_code}"
+
+    # If it is a share link or short link, attempt fast redirect resolution
+    if "/t/" in url or "/share/" in url:
+        try:
+            response = curl_requests.get(
+                url,
+                headers=DEFAULT_HEADERS,
+                impersonate="chrome",
+                allow_redirects=False,
+                timeout=5,
+            )
+            redirect_loc = response.headers.get("location") or response.headers.get("Location")
+            if redirect_loc:
+                redirect_match = re.search(pattern, redirect_loc)
+                if redirect_match:
+                    username, post_code = redirect_match.groups()
+                    return f"https://www.fzthreads.com/@{username}/post/{post_code}"
+        except Exception:
+            pass
+
+    parsed_url = urlparse(url)
+    netloc = parsed_url.netloc
+    if "threads.com" in netloc:
+        netloc = netloc.replace("threads.com", "fzthreads.com")
+    else:
+        return url
+
+    return urlunparse(
+        (
+            parsed_url.scheme or "https",
+            netloc,
+            parsed_url.path,
+            parsed_url.params,
+            "",
+            parsed_url.fragment,
+        )
+    )
+
+
+to_alternative_threads_url = to_fzthreads_url
 
 
 def _log_rate_limit_headers(response: Any, *, request_name: str, request_url: str) -> None:
