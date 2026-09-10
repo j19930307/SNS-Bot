@@ -49,9 +49,19 @@ def get_latest_videos(channel_handle: str):
             for content in contents:
                 richItemRenderer = content.get('richItemRenderer')
                 if richItemRenderer is None: break
-                videoRenderer = richItemRenderer['content']['videoRenderer']
-                video_id = videoRenderer['videoId']
-                videos_id.append(video_id)
+                item_content = richItemRenderer['content']
+                video_renderer = item_content.get('videoRenderer')
+                lockup_view_model = item_content.get('lockupViewModel')
+
+                if video_renderer is not None:
+                    video_id = video_renderer['videoId']
+                elif lockup_view_model and lockup_view_model.get('contentType') == 'LOCKUP_CONTENT_TYPE_VIDEO':
+                    video_id = lockup_view_model.get('contentId')
+                else:
+                    continue
+
+                if video_id:
+                    videos_id.append(video_id)
 
     return videos_id
 
