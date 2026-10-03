@@ -201,16 +201,67 @@ class PreviewService:
             print(f"轉換 HEIC 失敗: {e}")
             return io.BytesIO(data), filename
 
+    async def _download_images_for_embed(self, image_urls: list[str]) -> list[discord.File]:
+        """下載前 4 張圖片並轉換為 discord.File 列表（供 Embed 的 attachment:// 使用）"""
+        if not image_urls:
+            return []
+
+        async def _fetch(session: aiohttp.ClientSession, idx: int, url: str) -> tuple[int, discord.File | None]:
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                    if resp.status == 200:
+                        data = await resp.read()
+                        clean_name = url.split("/")[-1].split("?")[0].lower()
+                        ext = "jpg"
+                        for known_ext in ["png", "gif", "webp", "jpeg", "jpg"]:
+                            if clean_name.endswith(f".{known_ext}"):
+                                ext = "jpg" if known_ext == "jpeg" else known_ext
+                                break
+
+                        filename = f"preview_{idx}.{ext}"
+                        if clean_name.endswith(('.heic', '.heif')):
+                            file_data, filename = self._convert_heic_to_jpg(data, f"preview_{idx}.heic")
+                            return idx, discord.File(file_data, filename=filename)
+                        else:
+                            return idx, discord.File(io.BytesIO(data), filename=filename)
+            except Exception as e:
+                print(f"下載預覽圖片失敗 ({url}): {e}")
+            return idx, None
+
+        async with aiohttp.ClientSession() as session:
+            tasks = [_fetch(session, idx, url) for idx, url in enumerate(image_urls[:4])]
+            results = await asyncio.gather(*tasks)
+
+        results.sort(key=lambda x: x[0])
+        return [file for _, file in results if file is not None]
+
     async def _send_preview(self, ctx, social_post, show_all: bool):
         """發送預覽訊息"""
         _safe_print(f"訊息內容:\n{social_post}")
         embeds = build_text_embed(social_post) if show_all else build_embeds(social_post)
-        await ctx.followup.send(content=social_post.post_link, embeds=embeds)
+
+        files = []
+        if not show_all and social_post.images:
+            # 方案 A：下載前 4 張圖片並以 attachment:// 關聯到 Embed，解決 Meta CDN 阻擋 Discord Proxy 造成圖片消失的問題
+            files = await self._download_images_for_embed(social_post.images)
+            if files:
+                for idx, file in enumerate(files):
+                    if idx < len(embeds):
+                        embeds[idx].set_image(url=f"attachment://{file.filename}")
+                # 如果下載的檔案數少於原本產生的 embeds 數量，只保留有成功附加圖片的 embed (至少保留第 1 個)
+                if len(files) < len(embeds):
+                    embeds = embeds[:max(1, len(files))]
+
+        content_url = f"<{social_post.post_link}>" if social_post.post_link else ""
+        if files:
+            await ctx.followup.send(content=content_url, embeds=embeds, files=files)
+        else:
+            await ctx.followup.send(content=content_url, embeds=embeds)
 
         if show_all:
             media_urls = (social_post.images or []) + (social_post.videos or [])
             if media_urls:
-                files = []
+                all_files = []
                 async with aiohttp.ClientSession() as session:
                     for url in media_urls:
                         try:
@@ -224,17 +275,17 @@ class PreviewService:
                                     # 檢查是否為 HEIC 格式
                                     if filename.lower().endswith(('.heic', '.heif')):
                                         file_data, filename = self._convert_heic_to_jpg(data, filename)
-                                        files.append(discord.File(file_data, filename=filename))
+                                        all_files.append(discord.File(file_data, filename=filename))
                                     else:
-                                        files.append(discord.File(io.BytesIO(data), filename=filename))
+                                        all_files.append(discord.File(io.BytesIO(data), filename=filename))
                         except Exception as e:
                             print(f"下載檔案失敗 {url}: {e}")
 
-                if files:
+                if all_files:
                     # Discord 限制一次最多 10 個檔案
                     chunk_size = 10
-                    for i in range(0, len(files), chunk_size):
-                        chunk = files[i:i + chunk_size]
+                    for i in range(0, len(all_files), chunk_size):
+                        chunk = all_files[i:i + chunk_size]
                         await ctx.followup.send(files=chunk)
         else:
             if social_post.videos:
