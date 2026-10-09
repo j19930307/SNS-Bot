@@ -292,7 +292,10 @@ class PreviewService:
         else:
             if social_post.videos:
                 for video in social_post.videos:
-                    url_to_send = shorten_url(video) if len(video) > 100 else video
+                    # Discord 只有在網址路徑中能識別到 .mp4 等副檔名時，才會渲染內嵌影片播放器。
+                    # 若縮短為短網址，Discord 無法辨識為影片，播放器會消失。
+                    # Discord 單一訊息上限為 2000 字元，CDN 影片網址（約 900 字元）可直接發送。
+                    url_to_send = video if len(video) <= 2000 else shorten_url(video)
                     await ctx.followup.send(content=url_to_send)
 
         if social_post.links:

@@ -5,14 +5,14 @@ import requests
 
 
 def shorten_url(original_url: str) -> str:
-    """將長網址縮短，提供 TinyURL -> da.gd -> spoo.me 多重容錯機制。
+    """將長網址縮短，提供 da.gd -> TinyURL -> spoo.me 多重容錯機制。
 
     若所有服務皆無法使用，則退回原網址。
     """
-    # 1. 首選：TinyURL（穩定度高、速度快、免 API Key）
+    # 1. 首選：da.gd（純 302 跳轉、無 noindex 標籤，對 Discord 預覽相容性最佳）
     try:
         response = requests.get(
-            "https://tinyurl.com/api-create.php",
+            "https://da.gd/s",
             params={"url": original_url},
             timeout=5,
         )
@@ -21,10 +21,10 @@ def shorten_url(original_url: str) -> str:
     except Exception:
         pass
 
-    # 2. 備用 1：da.gd（輕量開源、免 API Key）
+    # 2. 備用 1：TinyURL（穩定老牌）
     try:
         response = requests.get(
-            "https://da.gd/s",
+            "https://tinyurl.com/api-create.php",
             params={"url": original_url},
             timeout=5,
         )
