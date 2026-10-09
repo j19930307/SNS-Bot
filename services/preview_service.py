@@ -12,7 +12,9 @@ import aiohttp
 import discord
 from PIL import Image
 from pillow_heif import register_heif_opener
-from sns_core.utils import get_domain_from_url, to_alternative_instagram_url, shorten_url
+from sns_core.utils import get_domain_from_url, to_alternative_instagram_url
+
+from utils.url_utils import shorten_url
 
 from sns_core import build_embeds, build_text_embed
 
