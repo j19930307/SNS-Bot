@@ -13,7 +13,7 @@ google-api-python-client==2.194.0
 jmespath==1.1.0
 nested_lookup==0.2.25
 parsel==1.11.0
-playwright==1.58.0
+playwright==1.65.0
 curl_cffi==0.15.0
 selectolax==0.4.7
 pillow==13.0.0
